@@ -200,7 +200,7 @@ const RISK = (v: number) => (v < 25 ? { label: 'Low', c: '#10b981', bg: 'bg-emer
 
 const f = (v: number, d = 0) => (Number.isFinite(v) ? v.toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d }) : '–')
 const tfmt = (ts: number, o: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }) => new Date(ts).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', ...o })
-const mean = (a: number[]) => a.reduce((s, v) => s + v, 0) / a.length
+// const mean = (a: number[]) => a.reduce((s, v) => s + v, 0) / a.length
 const pctRank = (arr: number[], v: number) => (arr.filter((x) => x <= v).length / arr.length) * 100
 
 interface Stat { pkQ: number[]; pkL: number[]; endL: number[]; rain: number[]; pEx: number; exBy: number[]; medFirst: number | null; risk: number; qS: Q5[]; lS: Q5[]; rS: Q5[]; cum: Q5[] }
