@@ -1,0 +1,428 @@
+
+@import "tailwindcss";
+
+/* =====================================
+   GLOBAL THEME VARIABLES
+   CHETAS BRAND COLOR PALETTE
+===================================== */
+
+:root {
+  /* Primary Brand Colors */
+  --primary: #0098DB;
+  --primary-dark: #007BB5;
+  --primary-light: #E5F6FD;
+
+  --accent: #91D8F4;
+  --accent-bg: #F0FAFE;
+
+  /* Background Colors */
+  --background: #FFFFFF;
+  --background-secondary: #F2FAFE;
+
+  /* Surface Colors */
+  --surface: #FFFFFF;
+  --surface-hover: #F0FAFE;
+
+  /* Text Colors */
+  --text-primary: #173B59;
+  --text-secondary: #475569;
+  --text-muted: #71869A;
+
+  /* Border Colors */
+  --border: #D6EDF8;
+  --border-light: #E8F4FA;
+
+  /* Status Colors */
+  --success: #16A36A;
+  --success-bg: #EAF8F1;
+
+  --warning: #D99124;
+  --warning-bg: #FFF7E8;
+
+  --danger: #DC4C4C;
+  --danger-bg: #FEF0F0;
+
+  --info: #0098DB;
+  --info-bg: #EAF7FD;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(23, 59, 89, 0.05);
+  --shadow-md: 0 4px 12px rgba(23, 59, 89, 0.07);
+  --shadow-lg: 0 10px 25px rgba(23, 59, 89, 0.10);
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+/* =====================================
+   GLOBAL RESET
+===================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  width: 100%;
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--background);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* =====================================
+   GLOBAL TYPOGRAPHY
+===================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
+/* =====================================
+   REUSABLE BACKGROUND CLASSES
+===================================== */
+
+.app-container {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+.app-background {
+  background: var(--background);
+}
+
+.app-secondary-background {
+  background: var(--background-secondary);
+}
+
+.app-surface {
+  background: var(--surface);
+}
+
+.app-surface-hover:hover {
+  background: var(--surface-hover);
+}
+
+/* =====================================
+   REUSABLE TEXT CLASSES
+===================================== */
+
+.text-primary-theme {
+  color: var(--primary);
+}
+
+.text-heading {
+  color: var(--text-primary);
+}
+
+.text-secondary-theme {
+  color: var(--text-secondary);
+}
+
+.text-muted-theme {
+  color: var(--text-muted);
+}
+
+/* =====================================
+   REUSABLE CARD STYLES
+===================================== */
+
+.dashboard-card {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.dashboard-card:hover {
+  border-color: var(--border);
+  box-shadow: var(--shadow-md);
+}
+
+/* =====================================
+   HEADER AND SIDEBAR
+===================================== */
+
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+.app-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border-light);
+  color: var(--text-primary);
+}
+
+.app-nav-item {
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.app-nav-item:hover {
+  background: var(--surface-hover);
+  color: var(--primary);
+}
+
+.app-nav-item.active {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+/* =====================================
+   BUTTONS
+===================================== */
+
+.primary-button {
+  background: var(--primary);
+  color: #FFFFFF;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: 9px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.primary-button:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  box-shadow: var(--shadow-sm);
+}
+
+.secondary-button {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 9px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.secondary-button:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+/* =====================================
+   FORM ELEMENTS
+===================================== */
+
+input,
+select,
+textarea {
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 152, 219, 0.12);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* =====================================
+   STATUS INDICATORS
+===================================== */
+
+.status-success {
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.status-warning {
+  color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.status-danger {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.status-info {
+  color: var(--info);
+  background: var(--info-bg);
+}
+
+/* =====================================
+   TABLES
+===================================== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+
+thead {
+  background: var(--background-secondary);
+  color: var(--text-primary);
+}
+
+th,
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  text-align: left;
+}
+
+th {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+td {
+  color: var(--text-secondary);
+}
+
+tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+/* =====================================
+   SCROLLBAR
+===================================== */
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #B7D7E8;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* =====================================
+   SELECTION
+===================================== */
+
+::selection {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+/* =====================================
+   TRANSITIONS
+===================================== */
+
+button,
+a,
+input,
+select,
+textarea {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* =====================================
+   UTILITY CLASSES
+===================================== */
+
+.brand-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--accent)
+  );
+}
+
+.brand-text {
+  color: var(--primary);
+}
+
+.brand-border {
+  border-color: var(--border);
+}
+
+.soft-blue-bg {
+  background: var(--accent-bg);
+}
+
+.section-divider {
+  border-color: var(--border-light);
+}
