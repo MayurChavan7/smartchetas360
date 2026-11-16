@@ -415,8 +415,20 @@ function TrendPanel(p: Props) {
   }, [p.series, p.bands, p.refLines, p.unit, p.unit2, type, compare, marks, smooth, full, d, accent])
 
   const exportCsv = () => {
-    const rows = ['timestamp,' + p.series.map((s) => `"${s.name} (${s.axis === 1 ? p.unit2 : p.unit})"`).join(',')]
-    (firstSeries?.data ?? []).forEach((pt, i) => rows.push(new Date(pt[0]).toISOString() + ',' + p.series.map((s) => s.data[i]?.[1] ?? '').join(',')))
+    const rows = [
+      'timestamp,' +
+        p.series
+          .map((s) => `"${s.name} (${s.axis === 1 ? p.unit2 : p.unit})"`)
+          .join(','),
+    ];
+
+    (firstSeries?.data ?? []).forEach((pt, i) => {
+      rows.push(
+        new Date(pt[0]).toISOString() +
+          ',' +
+          p.series.map((s) => s.data[i]?.[1] ?? '').join(','),
+      );
+    });
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }))
     a.download = `${p.title.toLowerCase().replace(/\W+/g, '-')}.csv`; a.click(); URL.revokeObjectURL(a.href)

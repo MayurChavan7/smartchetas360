@@ -5,7 +5,7 @@ import { Menu, X } from "lucide-react";
 
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import Footer from "../components/common/Footer";
+// import Footer from "../components/common/Footer";
 
 function MainLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
