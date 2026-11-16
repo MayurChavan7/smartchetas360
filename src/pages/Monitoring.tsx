@@ -346,7 +346,8 @@ function TrendPanel(p: Props) {
   const [smooth, setSmooth] = useState(true)
   const [full, setFull] = useState(false)
   const chart = useRef<ReactECharts>(null)
-  const accent = p.accent ?? p.series[0].color
+  const firstSeries = p.series[0]
+  const accent = p.accent ?? firstSeries?.color ?? '#0284C7'
   const hasCompare = p.series.some((s) => s.compare?.length)
 
   useEffect(() => {
@@ -355,10 +356,10 @@ function TrendPanel(p: Props) {
     addEventListener('keydown', esc); return () => removeEventListener('keydown', esc)
   }, [full])
 
-  const st = useMemo(() => stats(p.series[0].data), [p.series])
+  const st = useMemo(() => stats(firstSeries?.data ?? []), [firstSeries])
 
   const option = useMemo<EChartsOption>(() => {
-    const main = p.series[0]
+    const main = firstSeries
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const series: any[] = []
     p.series.forEach((s, idx) => {
@@ -390,8 +391,8 @@ function TrendPanel(p: Props) {
         series.push({ name: `${s.name} (previous period)`, type: 'line', yAxisIndex: s.axis ?? 0, data: s.compare, showSymbol: false, silent: true, z: 2, smooth,
           lineStyle: { width: 1.6, type: 'dashed', color: s.color, opacity: 0.55 }, itemStyle: { color: s.color } })
     })
-    const last = main.data[main.data.length - 1]
-    if (last) series.push({ name: '__live', type: 'effectScatter', data: [last], yAxisIndex: main.axis ?? 0, symbolSize: 9, z: 10,
+    const last = main?.data?.[main.data.length - 1]
+    if (last && main) series.push({ name: '__live', type: 'effectScatter', data: [last], yAxisIndex: main.axis ?? 0, symbolSize: 9, z: 10,
       rippleEffect: { scale: 3.2, brushType: 'stroke' }, itemStyle: { color: main.color }, tooltip: { show: false } })
 
     return {
@@ -415,7 +416,7 @@ function TrendPanel(p: Props) {
 
   const exportCsv = () => {
     const rows = ['timestamp,' + p.series.map((s) => `"${s.name} (${s.axis === 1 ? p.unit2 : p.unit})"`).join(',')]
-    p.series[0].data.forEach((pt, i) => rows.push(new Date(pt[0]).toISOString() + ',' + p.series.map((s) => s.data[i]?.[1] ?? '').join(',')))
+    (firstSeries?.data ?? []).forEach((pt, i) => rows.push(new Date(pt[0]).toISOString() + ',' + p.series.map((s) => s.data[i]?.[1] ?? '').join(',')))
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }))
     a.download = `${p.title.toLowerCase().replace(/\W+/g, '-')}.csv`; a.click(); URL.revokeObjectURL(a.href)
@@ -429,7 +430,7 @@ function TrendPanel(p: Props) {
   const btn = (on: boolean) => `rounded-md px-2.5 py-1.5 text-[11px] font-medium transition ${on ? 'bg-sky-600 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`
   const iconBtn = 'rounded-md p-1.5 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900'
   const cells = p.variant === 'sum'
-    ? [['Total', fmt(st.total, d), accent], ['Peak', fmt(st.max, d), '#f472b6'], ['Average', fmt(st.avg, d), '#94a3b8'], ['Active %', fmt((p.series[0].data.filter((x) => x[1] > 0).length / Math.max(1, p.series[0].data.length)) * 100, 0), '#a78bfa']]
+    ? [['Total', fmt(st.total, d), accent], ['Peak', fmt(st.max, d), '#f472b6'], ['Average', fmt(st.avg, d), '#94a3b8'], ['Active %', fmt(((firstSeries?.data ?? []).filter((x) => x[1] > 0).length / Math.max(1, firstSeries?.data.length ?? 0)) * 100, 0), '#a78bfa']]
     : [['Current', fmt(st.cur, d), accent], ['Min', fmt(st.min, d), '#38bdf8'], ['Max', fmt(st.max, d), '#fbbf24'], ['Average', fmt(st.avg, d), '#94a3b8']]
 
   return (
@@ -469,8 +470,13 @@ function TrendPanel(p: Props) {
         </div>
 
         <div className="mt-2 min-h-0 flex-1">
-          <ReactECharts ref={chart} option={option} lazyUpdate style={{ height: full ? '100%' : p.height ?? 300, width: '100%' }}
-            onChartReady={(c) => { c.group = 'monitoring'; echarts.connect('monitoring') }} />
+          <ReactECharts
+            ref={chart}
+            option={option}
+            notMerge={true}
+            lazyUpdate={false}
+            style={{ height: full ? '100%' : p.height ?? 300, width: '100%' }}
+          />
         </div>
       </div>
     </>
@@ -686,7 +692,7 @@ function Monitoring() {
           <div className={`${card} p-5`}>
             <h3 className="font-semibold text-slate-900">Reservoir filling</h3>
             <p className="mt-0.5 text-xs text-slate-600">Share of live capacity · colour bands are illustrative</p>
-            <ReactECharts option={gaugeOption} style={{ height: 250 }} />
+            <ReactECharts option={gaugeOption} notMerge={true} lazyUpdate={false} style={{ height: 250 }} />
             <div className="grid grid-cols-3 gap-2 text-center text-[11px]">
               {[['Level', `${f1(lq(live.level), 2)} ${lvlLbl}`, PALETTE.level], ['Storage', `${f1(live.storage, 0)} MCM`, PALETTE.storage], ['Net flow', `${sgn(live.inflow - live.outflow)}${f1(fq(live.inflow - live.outflow), flowD)}`, live.inflow >= live.outflow ? PALETTE.pos : PALETTE.neg]].map(([l, val, c]) => (
                 <div key={l} className="rounded-lg border border-slate-200 bg-slate-50 py-2"><p className="text-slate-500">{l}</p><p className="mt-0.5 font-semibold" style={{ color: c }}>{val}</p></div>
@@ -738,7 +744,7 @@ function Monitoring() {
             <div><h3 className="font-semibold text-slate-900">Gate opening heat-map</h3><p className="mt-0.5 text-xs text-slate-600">{profile.gateCount} gates · opening % over the selected range</p></div>
             <span className="rounded-full bg-sky-50 px-3 py-1 text-[11px] text-sky-700">Simulated</span>
           </div>
-          <ReactECharts option={heatOption} style={{ height: Math.max(300, profile.gateCount * 20 + 90), width: '100%' }} lazyUpdate />
+          <ReactECharts option={heatOption} notMerge={true} lazyUpdate={false} style={{ height: Math.max(300, profile.gateCount * 20 + 90), width: '100%' }} />
         </div>
         <div className={`${card} p-5 xl:col-span-2`}>
           <h3 className="font-semibold text-slate-900">Gate status</h3>
@@ -773,7 +779,7 @@ function Monitoring() {
         <div className={`${card} p-5`}>
           <h3 className="font-semibold text-slate-900">Elevation–capacity curve</h3>
           <p className="mt-0.5 text-xs text-slate-600">Where the reservoir sits now against the last 60 days (illustrative curve)</p>
-          <ReactECharts option={curveOption} style={{ height: 380, width: '100%' }} lazyUpdate />
+          <ReactECharts option={curveOption} notMerge={true} lazyUpdate={false} style={{ height: 380, width: '100%' }} />
         </div>
       </section>
 

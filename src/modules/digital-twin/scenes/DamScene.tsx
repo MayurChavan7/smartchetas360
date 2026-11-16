@@ -1088,7 +1088,7 @@ function Environment({
         color={night ? 0x9db8ff : 0xfff3d6}
         intensity={night ? 0.5 : 0.95}
         castShadow={shadows}
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0006}
         shadow-camera-left={-170}
         shadow-camera-right={170}
@@ -1284,7 +1284,7 @@ function FlowDirectionArrows() {
 }
 
 function Rain({ simRef }: { simRef: MutableRefObject<Sim> }) {
-  const N = 2200;
+  const N = 1200;
   const geo = useMemo(() => {
     const r = rng(99);
     const a = new Float32Array(N * 3);
@@ -1873,11 +1873,31 @@ function SimDriver({
   return null;
 }
 
-function GlGrab({ glRef }: { glRef: MutableRefObject<THREE.WebGLRenderer | null> }) {
+function GlGrab({
+  glRef,
+  sceneRef,
+  cameraRef,
+}: {
+  glRef: MutableRefObject<THREE.WebGLRenderer | null>;
+  sceneRef: MutableRefObject<THREE.Scene | null>;
+  cameraRef: MutableRefObject<THREE.Camera | null>;
+}) {
   const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const camera = useThree((s) => s.camera);
+
   useEffect(() => {
     glRef.current = gl;
-  }, [gl, glRef]);
+    sceneRef.current = scene;
+    cameraRef.current = camera;
+
+    return () => {
+      if (glRef.current === gl) glRef.current = null;
+      if (sceneRef.current === scene) sceneRef.current = null;
+      if (cameraRef.current === camera) cameraRef.current = null;
+    };
+  }, [gl, scene, camera, glRef, sceneRef, cameraRef]);
+
   return null;
 }
 
@@ -2075,6 +2095,8 @@ function DamScene() {
   const histRef = useRef<HistPt[]>([]);
   const camCmd = useRef<CamCmd | null>(null);
   const glRef = useRef<THREE.WebGLRenderer | null>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.Camera | null>(null);
   const idRef = useRef(1);
 
   const [snap, setSnap] = useState<Snap>(() => makeSnap(sim0, []));
@@ -2241,7 +2263,26 @@ function DamScene() {
   };
   const screenshot = () => {
     const gl = glRef.current;
-    if (gl) download(gl.domElement.toDataURL("image/png"), "dam-digital-twin.png");
+    const scene = sceneRef.current;
+    const camera = cameraRef.current;
+
+    if (!gl || !scene || !camera) {
+      pushLog("Screenshot unavailable: 3D renderer is not ready", "warn");
+      return;
+    }
+
+    try {
+      // With preserveDrawingBuffer disabled, render immediately before capture.
+      const previousTarget = gl.getRenderTarget();
+      gl.setRenderTarget(null);
+      gl.render(scene, camera);
+      const image = gl.domElement.toDataURL("image/png");
+      gl.setRenderTarget(previousTarget);
+      download(image, "dam-digital-twin.png");
+    } catch (error) {
+      console.error("Dam screenshot failed:", error);
+      pushLog("Screenshot failed. Please try again.", "warn");
+    }
   };
 
   // ---- derived -----------------------------------------------------------
@@ -2269,12 +2310,17 @@ function DamScene() {
       <div className="absolute inset-0">
         <Canvas
           shadows
-          dpr={[1, 2]}
+          dpr={[1, 1.25]}
           camera={{ position: [170, 95, 230], fov: 45, near: 0.5, far: 2000 }}
-          gl={{ antialias: true, preserveDrawingBuffer: true }}
+          gl={{
+            antialias: false,
+            alpha: false,
+            powerPreference: "high-performance",
+            preserveDrawingBuffer: false,
+          }}
         >
           <SimDriver simRef={simRef} histRef={histRef} pushLog={pushLog} onSnap={setSnap} />
-          <GlGrab glRef={glRef} />
+          <GlGrab glRef={glRef} sceneRef={sceneRef} cameraRef={cameraRef} />
           <World
             simRef={simRef}
             camCmd={camCmd}

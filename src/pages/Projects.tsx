@@ -198,9 +198,9 @@ const projectLocations: ProjectLocation[] = [
 ];
 
 const PROJECT_GEOS = projectLocations.map((l) => l.geo);
-const TOUR_INTERVAL = 4500;
-const getProjectDelay = (count: number) =>
-  Math.max(1800, TOUR_INTERVAL / Math.max(count, 1));
+
+// Show every project's spotlight for 800 ms across all locations.
+const getProjectDelay = (_count: number) => 800;
 
 /** Animated number that counts up when the value changes. */
 function CountUp({ value, duration = 900 }: { value: number; duration?: number }) {

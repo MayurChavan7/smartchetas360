@@ -133,8 +133,14 @@ function Dashboard() {
 
         <div className="relative flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
           <div className="min-w-0">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
-              <span className="h-2 w-2 rounded-full bg-[#91D8F4]" />
+            <div className="mb-3 inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-0.5">
+                <img
+                  src="/ChetasLogo.webp"
+                  alt="Chetas Control Systems logo"
+                  className="h-full w-full object-contain"
+                />
+              </span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#BDEBFC]">
                 Chetas Control Systems
               </span>

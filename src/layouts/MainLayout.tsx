@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import Footer from "../components/common/Footer";
 
 function MainLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -22,7 +23,7 @@ function MainLayout() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-white">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
 
         {/* HEADER */}
         <div className="relative z-30 shrink-0">
@@ -39,6 +40,7 @@ function MainLayout() {
                   : "Open navigation"
               }
               aria-expanded={mobileSidebarOpen}
+              aria-controls="mobile-sidebar"
               className="flex h-10 w-10 items-center justify-center rounded-lg text-[#91D8F4] transition-colors hover:bg-[#17384D] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#0098DB]"
             >
               {mobileSidebarOpen ? (
@@ -68,11 +70,19 @@ function MainLayout() {
           <Header />
         </div>
 
-        {/* PAGE CONTENT */}
-        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-white p-3 sm:p-5 md:p-6 lg:p-8">
-          <div className="mx-auto w-full max-w-[1800px]">
-            <Outlet />
+        {/* SCROLLABLE PAGE CONTENT + FOOTER */}
+        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-white">
+
+          {/* PAGE CONTENT */}
+          <div className="px-3 py-4 sm:px-5 sm:py-5 md:px-6 md:py-6 lg:px-8 lg:py-8">
+            <div className="mx-auto w-full max-w-[1800px]">
+              <Outlet />
+            </div>
           </div>
+
+          {/* GLOBAL FOOTER */}
+          {/* <Footer /> */}
+
         </main>
       </div>
 
@@ -88,17 +98,20 @@ function MainLayout() {
 
       {/* MOBILE SIDEBAR DRAWER */}
       <div
+        id="mobile-sidebar"
         className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] transform border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
           mobileSidebarOpen
             ? "translate-x-0"
             : "-translate-x-full"
         }`}
         aria-hidden={!mobileSidebarOpen}
+        inert={!mobileSidebarOpen}
       >
         <div className="flex h-full flex-col overflow-y-auto">
 
           {/* DRAWER HEADER */}
           <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-[#071B2A] px-4">
+
             <div>
               <p className="text-sm font-bold tracking-wide text-white">
                 SMART DAM 360
