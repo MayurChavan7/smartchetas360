@@ -1,795 +1,4 @@
-// import { useEffect, useRef, useState } from "react";
-// import * as THREE from "three";
-// import {
-//   AlertTriangle,
-//   CheckCircle2,
-//   CloudRain,
-//   Camera,
-//   Maximize2,
-//   Settings2,
-//   Pause,
-//   Play,
-//   RotateCcw,
-//   Waves,
-// } from "lucide-react";
 
-// type SimulationStatus = "NORMAL" | "RISING" | "ALERT" | "RELEASING" | "STABLE";
-
-// const DURATION = 32;
-
-// const captions: Array<[number, string]> = [
-//   [0, "Normal operation. The demonstration reservoir starts at 680.0 m with the gates closed."],
-//   [3, "Heavy rainfall begins. Simulated inflow increases and the reservoir level rises."],
-//   [12, "The selected rainfall scenario is evaluated against an illustrative reference. An alert sequence is shown only if the model level reaches it."],
-//   [14, "If the illustrative reference is reached, the animation shows a simulated sensor signal reaching the control room."],
-//   [17, "When the illustrative alert sequence is active, simulated notification paths are shown to the listed authorities."],
-//   [21, "The gate model follows the selected automatic or manual demonstration setting; no physical equipment is controlled."],
-//   [30, "The scenario ends. The displayed reservoir response depends on the selected rainfall and gate settings, and is not a safety assessment."],
-// ];
-
-// const clamp = (value: number) => Math.min(1, Math.max(0, value));
-// const segment = (t: number, a: number, b: number) => clamp((t - a) / (b - a));
-// const ease = (x: number) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
-// const peakWaterLevel = (rainfallIntensity: number) =>
-//   680 + (rainfallIntensity / 100) * 6.15;
-
-// const automaticGateOpening = (t: number) =>
-//   ease(segment(t, 22, 25)) * (1 - ease(segment(t, 30, 32)));
-
-// const waterLevel = (
-//   t: number,
-//   rainfallIntensity: number,
-//   gateMode: "AUTO" | "MANUAL",
-//   manualGate: number,
-// ) => {
-//   const rise = peakWaterLevel(rainfallIntensity) - 680;
-//   const peak = t < 5 ? 680 : t < 12 ? 680 + rise * ease(segment(t, 5, 12)) : 680 + rise;
-//   if (t < 22) return peak;
-
-//   const releaseControl = gateMode === "AUTO"
-//     ? (peakWaterLevel(rainfallIntensity) >= 684 ? 1 : 0)
-//     : manualGate / 100;
-//   const releaseProgress = ease(segment(t, 22, 30));
-//   return peak - rise * 0.9 * releaseControl * releaseProgress;
-// };
-
-// function createStreakTexture() {
-//   const canvas = document.createElement("canvas");
-//   canvas.width = canvas.height = 256;
-//   const context = canvas.getContext("2d");
-//   if (!context) return new THREE.CanvasTexture(canvas);
-//   context.fillStyle = "#2a8fe0";
-//   context.fillRect(0, 0, 256, 256);
-//   for (let i = 0; i < 90; i += 1) {
-//     context.strokeStyle = `rgba(255,255,255,${0.08 + Math.random() * 0.22})`;
-//     context.lineWidth = 1 + Math.random() * 2;
-//     const x = Math.random() * 256;
-//     const y = Math.random() * 256;
-//     const length = 10 + Math.random() * 40;
-//     context.beginPath();
-//     context.moveTo(x, y);
-//     context.lineTo(x + length, y);
-//     context.stroke();
-//   }
-//   const texture = new THREE.CanvasTexture(canvas);
-//   texture.wrapS = THREE.RepeatWrapping;
-//   texture.wrapT = THREE.RepeatWrapping;
-//   return texture;
-// }
-
-// export default function EarlyWarningSimulation() {
-//   const stageRef = useRef<HTMLDivElement | null>(null);
-//   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-//   const [playing, setPlaying] = useState(true);
-//   const [speed, setSpeed] = useState(1);
-//   const [quality, setQuality] = useState("auto");
-//   const [loop, setLoop] = useState(true);
-//   const [time, setTime] = useState(0);
-//   const [status, setStatus] = useState<SimulationStatus>("NORMAL");
-//   const [level, setLevel] = useState(680);
-//   const [inflow, setInflow] = useState(380);
-//   const [outflow, setOutflow] = useState(300);
-//   const [caption, setCaption] = useState(captions[0][1]);
-//   const [webglError, setWebglError] = useState(false);
-//   const [completedRecipients, setCompletedRecipients] = useState([false, false, false]);
-//   const [rainfallIntensity, setRainfallIntensity] = useState(70);
-//   const [gateMode, setGateMode] = useState<"AUTO" | "MANUAL">("AUTO");
-//   const [manualGate, setManualGate] = useState(0);
-//   const [cameraPreset, setCameraPreset] = useState<"overview" | "reservoir" | "gates">("overview");
-//   const controlsRef = useRef({
-//     playing: true,
-//     speed: 1,
-//     loop: true,
-//     quality: "auto",
-//     seek: null as number | null,
-//     restart: false,
-//     rainfallIntensity: 70,
-//     gateMode: "AUTO" as "AUTO" | "MANUAL",
-//     manualGate: 0,
-//     cameraPreset: "overview" as "overview" | "reservoir" | "gates",
-//   });
-
-//   useEffect(() => {
-//     controlsRef.current.playing = playing;
-//     controlsRef.current.speed = speed;
-//     controlsRef.current.loop = loop;
-//     controlsRef.current.quality = quality;
-//     controlsRef.current.rainfallIntensity = rainfallIntensity;
-//     controlsRef.current.gateMode = gateMode;
-//     controlsRef.current.manualGate = manualGate;
-//     controlsRef.current.cameraPreset = cameraPreset;
-//   }, [playing, speed, loop, quality, rainfallIntensity, gateMode, manualGate, cameraPreset]);
-
-//   useEffect(() => {
-//     const stage = stageRef.current;
-//     const canvas = canvasRef.current;
-//     if (!stage || !canvas) return;
-
-//     let renderer: THREE.WebGLRenderer;
-//     try {
-//       renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-//     } catch {
-//       setWebglError(true);
-//       return;
-//     }
-
-//     renderer.shadowMap.enabled = true;
-//     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-//     const scene = new THREE.Scene();
-//     const camera = new THREE.PerspectiveCamera(42, 16 / 9, 0.5, 200);
-//     const dayColor = new THREE.Color(0x1d4682);
-//     const stormColor = new THREE.Color(0x0a1426);
-//     const backgroundColor = new THREE.Color();
-//     scene.fog = new THREE.Fog(0x1d4682, 50, 110);
-
-//     const hemisphere = new THREE.HemisphereLight(0xbcd8ff, 0x12305e, 0.95);
-//     const sun = new THREE.DirectionalLight(0xffffff, 1.1);
-//     sun.position.set(12, 22, 16);
-//     sun.castShadow = true;
-//     sun.shadow.mapSize.set(2048, 2048);
-//     const shadowCamera = sun.shadow.camera as THREE.OrthographicCamera;
-//     shadowCamera.left = -30;
-//     shadowCamera.right = 30;
-//     shadowCamera.top = 30;
-//     shadowCamera.bottom = -30;
-//     shadowCamera.far = 90;
-//     const alertLight = new THREE.PointLight(0xff3d2e, 0, 22);
-//     alertLight.position.set(-5, 8, 4);
-//     scene.add(hemisphere, sun, alertLight);
-
-//     const material = (color: THREE.ColorRepresentation, options: THREE.MeshStandardMaterialParameters = {}) =>
-//       new THREE.MeshStandardMaterial({ color, ...options });
-//     const addBox = (
-//       width: number, height: number, depth: number,
-//       x: number, y: number, z: number, color: THREE.ColorRepresentation,
-//       options: THREE.MeshStandardMaterialParameters = {},
-//     ) => {
-//       const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material(color, options));
-//       mesh.position.set(x, y, z);
-//       mesh.castShadow = true;
-//       mesh.receiveShadow = true;
-//       scene.add(mesh);
-//       return mesh;
-//     };
-//     const addLabel = (text: string, width: number, x: number, y: number, z: number) => {
-//       const labelCanvas = document.createElement("canvas");
-//       labelCanvas.width = 640;
-//       labelCanvas.height = 112;
-//       const context = labelCanvas.getContext("2d");
-//       if (!context) return;
-//       context.fillStyle = "rgba(5,20,50,.82)";
-//       context.strokeStyle = "#4cc2ff";
-//       context.lineWidth = 4;
-//       context.beginPath();
-//       if (context.roundRect) context.roundRect(4, 4, 632, 104, 22);
-//       else context.rect(4, 4, 632, 104);
-//       context.fill();
-//       context.stroke();
-//       context.fillStyle = "#fff";
-//       context.font = "600 44px Segoe UI,Arial,sans-serif";
-//       context.textAlign = "center";
-//       context.textBaseline = "middle";
-//       context.fillText(text, 320, 58);
-//       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(labelCanvas), depthTest: false, transparent: true }));
-//       sprite.scale.set(width, (width * 112) / 640, 1);
-//       sprite.position.set(x, y, z);
-//       sprite.renderOrder = 9;
-//       scene.add(sprite);
-//     };
-
-//     // Diorama base and terrain.
-//     addBox(42, 1, 27, 4, -0.5, -3, 0x0a1f4a);
-//     const edge = new THREE.LineSegments(
-//       new THREE.EdgesGeometry(new THREE.BoxGeometry(42, 1, 27)),
-//       new THREE.LineBasicMaterial({ color: 0x3fc8ff }),
-//     );
-//     edge.position.set(4, -0.5, -3);
-//     scene.add(edge);
-//     addBox(14, 7, 10, -9, 3.5, -11.5, 0x1b4a3a);
-//     addBox(3, 7, 13, -15.5, 3.5, -5, 0x1b4a3a);
-//     addBox(26, 0.8, 10, 12, 0.4, -11.5, 0x14392c);
-//     addBox(26, 0.8, 4, 12, 0.4, 10, 0x14392c);
-//     for (let i = 0; i < 34; i += 1) {
-//       const upstream = i < 12;
-//       const x = upstream ? -14 + Math.random() * 10 : 2 + Math.random() * 20;
-//       const z = upstream ? -8 - Math.random() * 6 : (i % 3 ? -8 - Math.random() * 6 : 8.5 + Math.random() * 3);
-//       const tree = new THREE.Group();
-//       const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.7, 6), material(0x5b3b22));
-//       trunk.position.y = 0.35;
-//       const crown = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.5, 8), material(0x1f7a4d));
-//       crown.position.y = 1.4;
-//       crown.castShadow = true;
-//       tree.add(trunk, crown);
-//       tree.position.set(x, upstream ? 7 : 0.8, z);
-//       tree.scale.setScalar(0.8 + Math.random() * 0.6);
-//       scene.add(tree);
-//     }
-
-//     // Reservoir and illustrative alert reference.
-//     const waterTexture = createStreakTexture();
-//     waterTexture.repeat.set(4, 4);
-//     const water = new THREE.Mesh(new THREE.BoxGeometry(12, 1, 13), material(0x1f8fe0, { transparent: true, opacity: 0.74, roughness: 0.15, metalness: 0.1 }));
-//     water.position.x = -8;
-//     scene.add(water);
-//     const surfaceMaterial = material(0x5cc4ff, { map: waterTexture, roughness: 0.15, metalness: 0.15, transparent: true, opacity: 0.92 });
-//     const surface = new THREE.Mesh(new THREE.PlaneGeometry(12, 13, 30, 30), surfaceMaterial);
-//     surface.rotation.x = -Math.PI / 2;
-//     surface.position.x = -8;
-//     scene.add(surface);
-//     const surfacePositions = surface.geometry.attributes.position;
-//     const alertReference = addBox(0.05, 0.05, 13, -2.04, 5.2, 0, 0xffb020, { emissive: 0xffb020, emissiveIntensity: 1 });
-//     addLabel("Illustrative alert reference", 4.4, -3.6, 5.75, 6.9);
-
-//     // Dam and gates.
-//     addBox(2, 6, 13, -1, 3, 0, 0x8b97ad);
-//     addBox(2.8, 0.3, 13.6, -1, 6.15, 0, 0xc3cddd);
-//     const gateZ = [-4.5, -1.5, 1.5, 4.5];
-//     const gatePanels: THREE.Mesh[] = [];
-//     gateZ.forEach((z) => {
-//       addBox(0.14, 1.9, 1.8, 0.03, 1.3, z, 0x06122c);
-//       gatePanels.push(addBox(0.18, 2, 1.9, 0.14, 1.4, z, 0x35507f));
-//     });
-//     const jetCount = 480;
-//     const jetGeometry = new THREE.BufferGeometry();
-//     const jetPositions = new Float32Array(jetCount * 3);
-//     const jetVelocity: number[] = [];
-//     const jetDepth: number[] = [];
-//     for (let i = 0; i < jetCount; i += 1) {
-//       jetVelocity.push(2.4 + Math.random() * 1.8);
-//       jetDepth.push((Math.random() - 0.5) * 1.6);
-//     }
-//     jetGeometry.setAttribute("position", new THREE.BufferAttribute(jetPositions, 3));
-//     const jets = new THREE.Points(jetGeometry, new THREE.PointsMaterial({ color: 0xe2f6ff, size: 0.2, transparent: true, opacity: 0, depthWrite: false }));
-//     jets.frustumCulled = false;
-//     scene.add(jets);
-
-//     // Downstream river.
-//     const riverTexture = createStreakTexture();
-//     riverTexture.repeat.set(6, 3);
-//     const river = new THREE.Mesh(new THREE.PlaneGeometry(22, 14), material(0x2a9be0, { map: riverTexture, roughness: 0.2, metalness: 0.1 }));
-//     river.rotation.x = -Math.PI / 2;
-//     river.position.set(11, 0.12, 0);
-//     river.receiveShadow = true;
-//     scene.add(river);
-
-//     // Sensor and control room.
-//     const sensorMaterial = material(0x2ee6a6, { emissive: 0x2ee6a6, emissiveIntensity: 1.4 });
-//     const sensor = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 20), sensorMaterial);
-//     sensor.position.set(-5, 7.6, 4);
-//     scene.add(sensor);
-//     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 7.5, 10), material(0x9fb4d8));
-//     pole.position.set(-5, 3.75, 4);
-//     pole.castShadow = true;
-//     scene.add(pole);
-//     const sensorRing = new THREE.Mesh(new THREE.TorusGeometry(1, 0.04, 8, 40), new THREE.MeshBasicMaterial({ color: 0xff4a3d, transparent: true, opacity: 0 }));
-//     sensorRing.position.copy(sensor.position);
-//     sensorRing.rotation.x = Math.PI / 2;
-//     scene.add(sensorRing);
-//     addLabel("Reservoir water level sensor", 4.6, -5, 8.6, 4);
-
-//     addBox(4, 2.2, 2.6, 7, 1.9, -9.5, 0xcdd6e6);
-//     addBox(4.5, 0.3, 3.1, 7, 3.15, -9.5, 0x5d6f93);
-//     for (let i = 0; i < 3; i += 1) addBox(0.8, 0.7, 0.05, 5.9 + i * 1.1, 2.1, -8.18, 0x2aa8ff, { emissive: 0x2aa8ff, emissiveIntensity: 0.9 });
-//     const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.12, 5.2, 8), material(0x9fb4d8));
-//     antenna.position.set(4, 3.4, -9.5);
-//     antenna.castShadow = true;
-//     scene.add(antenna);
-//     const antennaLightMaterial = material(0xff5a3c, { emissive: 0xff5a3c, emissiveIntensity: 0 });
-//     const antennaLight = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), antennaLightMaterial);
-//     antennaLight.position.set(4, 6.1, -9.5);
-//     scene.add(antennaLight);
-//     addLabel("Control room (PLC & SCADA)", 5.2, 7, 4.5, -9.5);
-
-//     const recipients = [
-//       ["Gram Panchayat", 11, -13, 2, 1.4, 1.6, 0xd9b36a],
-//       ["Municipal", 15, -10.5, 2.2, 1.8, 1.8, 0xb9c4d8],
-//       ["Government authorities", 19, -12.5, 2.4, 2.2, 2, 0xe7e1d2],
-//     ] as const;
-//     const recipientMaterials: THREE.MeshStandardMaterial[] = [];
-//     const recipientPositions: THREE.Vector3[] = [];
-//     recipients.forEach((recipient) => {
-//       const [, x, z, width, height, depth, color] = recipient;
-//       addBox(width, height, depth, x, 0.8 + height / 2, z, color);
-//       addBox(width + 0.3, 0.2, depth + 0.3, x, 0.9 + height, z, 0x5d6f93);
-//       const indicatorMaterial = material(0x556677, { emissive: 0x000000, emissiveIntensity: 1 });
-//       const indicator = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 14), indicatorMaterial);
-//       indicator.position.set(x, 1.35 + height, z);
-//       scene.add(indicator);
-//       recipientMaterials.push(indicatorMaterial);
-//       recipientPositions.push(indicator.position.clone());
-//       addLabel(recipient[0], 4, x, 2.5 + height, z);
-//     });
-
-//     // Animated communication paths.
-//     const curves = [new THREE.QuadraticBezierCurve3(sensor.position.clone(), new THREE.Vector3(-0.5, 13, -3), antennaLight.position.clone())];
-//     recipientPositions.forEach((target, index) => {
-//       curves.push(new THREE.QuadraticBezierCurve3(antennaLight.position.clone(), new THREE.Vector3((antennaLight.position.x + target.x) / 2, antennaLight.position.y + 4 + index, (antennaLight.position.z + target.z) / 2), target.clone()));
-//     });
-//     const beamMeshes: Array<{ geometry: THREE.TubeGeometry; indexCount: number }> = [];
-//     const signalPoints: THREE.Mesh[] = [];
-//     curves.forEach((curve, index) => {
-//       const geometry = new THREE.TubeGeometry(curve, 48, 0.07, 6, false);
-//       const beam = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: index ? 0x4cc2ff : 0xffb020, transparent: true, opacity: 0.85 }));
-//       beam.frustumCulled = false;
-//       scene.add(beam);
-//       beamMeshes.push({ geometry, indexCount: geometry.index?.count ?? 0 });
-//       geometry.setDrawRange(0, 0);
-//       const point = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 12), new THREE.MeshBasicMaterial({ color: index ? 0xdff6ff : 0xffe0a0 }));
-//       point.visible = false;
-//       scene.add(point);
-//       signalPoints.push(point);
-//     });
-
-//     // Rain and storm cloud.
-//     const rainCount = 1800;
-//     const rainGeometry = new THREE.BufferGeometry();
-//     const rainPositions = new Float32Array(rainCount * 6);
-//     const rainData = Array.from({ length: rainCount }, () => ({
-//       x: -14 + Math.random() * 12,
-//       z: -6 + Math.random() * 12.4,
-//       phase: Math.random(),
-//       speed: 0.8 + Math.random() * 0.6,
-//     }));
-//     rainGeometry.setAttribute("position", new THREE.BufferAttribute(rainPositions, 3));
-//     const rainMaterial = new THREE.LineBasicMaterial({ color: 0xcfe9ff, transparent: true, opacity: 0 });
-//     const rain = new THREE.LineSegments(rainGeometry, rainMaterial);
-//     rain.frustumCulled = false;
-//     scene.add(rain);
-//     const cloudMaterial = material(0xd0d6e0, { transparent: true, roughness: 1 });
-//     const cloud = new THREE.Group();
-//     [[-3, 0, 0, 2.6], [0, 0.6, 0.4, 3.2], [3.2, 0, -0.3, 2.7], [5.6, -0.3, 0.5, 2], [-5.2, -0.4, 0.6, 1.9], [1.4, -0.2, 1.6, 2.4], [-1.8, -0.3, -1.8, 2.3]].forEach(([x, y, z, radius]) => {
-//       const puff = new THREE.Mesh(new THREE.SphereGeometry(radius, 16, 12), cloudMaterial);
-//       puff.position.set(x, y, z);
-//       puff.scale.y = 0.62;
-//       cloud.add(puff);
-//     });
-//     scene.add(cloud);
-
-//     let elapsed = 0;
-//     let previousFrame = 0;
-//     let uiAccumulator = 0;
-//     let pointerX = 0;
-//     let pointerY = 0;
-//     let cameraX = 0;
-//     let cameraY = 0;
-//     let animationFrame = 0;
-//     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-//       controlsRef.current.playing = false;
-//       setPlaying(false);
-//     }
-//     let lastCaption = -1;
-//     let lastQuality = controlsRef.current.quality;
-//     let disposed = false;
-
-//     const onPointerMove = (event: PointerEvent) => {
-//       const bounds = stage.getBoundingClientRect();
-//       pointerX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
-//       pointerY = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
-//     };
-//     const resize = () => {
-//       const width = stage.clientWidth;
-//       const height = stage.clientHeight;
-//       if (!width || !height) return;
-//       const requested = controlsRef.current.quality === "auto" ? 0 : Number(controlsRef.current.quality);
-//       const pixelRatio = requested ? Math.min(4, requested / width) : Math.min(window.devicePixelRatio || 1, 2);
-//       renderer.setPixelRatio(pixelRatio);
-//       renderer.setSize(width, height, false);
-//       camera.aspect = width / height;
-//       camera.updateProjectionMatrix();
-//     };
-//     const resizeObserver = new ResizeObserver(resize);
-//     resizeObserver.observe(stage);
-//     stage.addEventListener("pointermove", onPointerMove);
-//     resize();
-
-//     const renderAt = (t: number, delta: number, updateUi: boolean) => {
-//       const intensity = controlsRef.current.rainfallIntensity;
-//       const mode = controlsRef.current.gateMode;
-//       const manualOpening = controlsRef.current.manualGate;
-//       const currentLevel = waterLevel(t, intensity, mode, manualOpening);
-//       const peakLevel = peakWaterLevel(intensity);
-//       const alertTriggered = peakLevel >= 684 && t >= 12;
-//       const waterHeight = 3 + (currentLevel - 680) * 0.55;
-//       const rainStrength = segment(t, 3.5, 5) * (1 - segment(t, 24, 27)) * (intensity / 100);
-//       const gateOpening = mode === "AUTO"
-//         ? (alertTriggered ? automaticGateOpening(t) : 0)
-//         : manualOpening / 100;
-//       water.scale.y = waterHeight;
-//       water.position.y = waterHeight / 2;
-//       surface.position.y = waterHeight + 0.01;
-//       for (let i = 0; i < surfacePositions.count; i += 1) {
-//         const x = surfacePositions.getX(i);
-//         const y = surfacePositions.getY(i);
-//         surfacePositions.setZ(i, Math.sin(x * 1.3 + t * 2.4) * (0.03 + 0.09 * rainStrength) + Math.cos(y * 1.1 + t * 2) * (0.03 + 0.08 * rainStrength));
-//       }
-//       surfacePositions.needsUpdate = true;
-//       waterTexture.offset.x = -t * 0.012;
-//       riverTexture.offset.x -= delta * (0.04 + gateOpening * 0.5);
-//       (alertReference.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.6 + 0.4 * Math.sin(t * 4);
-
-//       const storm = segment(t, 2, 6) * (1 - segment(t, 25, 30)) * (intensity / 100);
-//       backgroundColor.copy(dayColor).lerp(stormColor, storm);
-//       scene.background = backgroundColor;
-//       (scene.fog as THREE.Fog).color.copy(backgroundColor);
-//       const flash = ((t > 7 && t < 7.12) || (t > 9.6 && t < 9.7) || (t > 13.4 && t < 13.5)) ? 1.6 : 0;
-//       hemisphere.intensity = 0.95 - 0.35 * storm + flash;
-//       sun.intensity = 1.1 - 0.6 * storm;
-//       cloud.position.set(-26 + 17 * ease(segment(t, 1.8, 4.5)), 12, 0);
-//       cloudMaterial.color.setHex(0xd0d6e0).lerp(new THREE.Color(0x4f586b), storm);
-//       cloudMaterial.opacity = segment(t, 1.8, 3.5) * (1 - 0.9 * segment(t, 26, 30)) * (intensity / 100);
-//       cloud.visible = cloudMaterial.opacity > 0.01;
-
-//       rainMaterial.opacity = 0.65 * rainStrength;
-//       rain.visible = rainStrength > 0.01;
-//       if (rain.visible) {
-//         for (let i = 0; i < rainCount; i += 1) {
-//           const item = rainData[i];
-//           const y = 13 - ((item.phase + t * 0.9 * item.speed) % 1) * (13 - waterHeight);
-//           const offset = i * 6;
-//           rainPositions[offset] = item.x;
-//           rainPositions[offset + 1] = y;
-//           rainPositions[offset + 2] = item.z;
-//           rainPositions[offset + 3] = item.x - 0.08;
-//           rainPositions[offset + 4] = y + 0.55;
-//           rainPositions[offset + 5] = item.z;
-//         }
-//         (rainGeometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
-//       }
-
-//       const alertActive = alertTriggered && t < 29;
-//       const sensorColor = alertActive ? 0xff4a3d : 0x2ee6a6;
-//       sensorMaterial.color.setHex(sensorColor);
-//       sensorMaterial.emissive.setHex(sensorColor);
-//       sensorMaterial.emissiveIntensity = alertActive ? 1.2 + Math.sin(t * 10) * 0.8 : 1.4;
-//       const ringPhase = (t * 1.1) % 1;
-//       sensorRing.scale.setScalar(0.6 + ringPhase * 2.4);
-//       (sensorRing.material as THREE.MeshBasicMaterial).opacity = alertActive ? (1 - ringPhase) * 0.9 : 0;
-//       alertLight.intensity = alertActive ? 1.5 + Math.sin(t * 10) : 0;
-
-//       const communicationEnabled = alertTriggered ? 1 : 0;
-//       const progress = [
-//         communicationEnabled * segment(t, 14, 17),
-//         communicationEnabled * segment(t, 17, 19),
-//         communicationEnabled * segment(t, 17.4, 19.6),
-//         communicationEnabled * segment(t, 17.8, 20.2),
-//       ];
-//       beamMeshes.forEach((beam, index) => {
-//         beam.geometry.setDrawRange(0, Math.floor(progress[index] * beam.indexCount / 6) * 6);
-//         const point = signalPoints[index];
-//         point.visible = progress[index] > 0 && progress[index] < 1;
-//         if (point.visible) point.position.copy(curves[index].getPoint(progress[index]));
-//       });
-//       antennaLightMaterial.emissiveIntensity = t > 16.5 && t < 21 && Math.sin(t * 12) > 0 ? 2 : 0;
-//       recipientMaterials.forEach((recipientMaterial, index) => {
-//         const isOn = progress[index + 1] >= 1 && t < 30.5;
-//         recipientMaterial.color.setHex(isOn ? 0x2ee68a : 0x556677);
-//         recipientMaterial.emissive.setHex(isOn ? 0x2ee68a : 0x000000);
-//       });
-//       gatePanels.forEach((panel) => { panel.position.y = 1.4 + gateOpening * 2.2; });
-//       const jetMaterial = jets.material as THREE.PointsMaterial;
-//       jetMaterial.opacity = gateOpening > 0.04 ? Math.min(0.95, gateOpening * 1.5) : 0;
-//       jets.visible = jetMaterial.opacity > 0;
-//       if (jets.visible) {
-//         for (let i = 0; i < jetCount; i += 1) {
-//           const progressValue = (t * 1.3 + i / jetCount) % 1;
-//           const y = Math.max(0.16, 1.3 + 1.4 * progressValue - 6 * progressValue * progressValue);
-//           const offset = i * 3;
-//           jetPositions[offset] = 0.3 + jetVelocity[i] * progressValue;
-//           jetPositions[offset + 1] = y;
-//           jetPositions[offset + 2] = gateZ[i % 4] + jetDepth[i];
-//         }
-//         (jetGeometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
-//       }
-
-//       cameraX += (pointerX - cameraX) * 0.05;
-//       cameraY += (pointerY - cameraY) * 0.05;
-//       const preset = controlsRef.current.cameraPreset;
-//       const view = preset === "reservoir"
-//         ? { x: -7, y: 10, z: 19, tx: -6, ty: 3.2, tz: -1 }
-//         : preset === "gates"
-//           ? { x: 5, y: 7, z: 17, tx: 1, ty: 2, tz: 0 }
-//           : { x: 3, y: 9.5, z: 27, tx: 3, ty: 2.6, tz: -2 };
-//       const dolly = ease(segment(t, 12, 16)) * -2.5 + ease(segment(t, 21, 26)) * 1.5;
-//       camera.position.set(view.x + Math.sin(t * 0.18) * (preset === "overview" ? 2.5 : 0.7) + cameraX * 4, view.y + cameraY * 2.5, view.z + dolly);
-//       camera.lookAt(view.tx + cameraX * 1.2, view.ty, view.tz);
-//       renderer.render(scene, camera);
-
-//       if (updateUi) {
-//         setLevel(currentLevel);
-//         setInflow(Math.round(180 + (intensity / 100) * 1070 * segment(t, 4, 8) * (1 - segment(t, 24, 28))));
-//         setOutflow(Math.round(300 + 880 * gateOpening));
-//         setStatus(!alertTriggered
-//           ? (t < 5 ? "NORMAL" : t < 30 ? "RISING" : "STABLE")
-//           : t < 22 ? "ALERT" : t < 30 ? "RELEASING" : "STABLE");
-//         setCompletedRecipients([progress[1] >= 1 && t < 30.5, progress[2] >= 1 && t < 30.5, progress[3] >= 1 && t < 30.5]);
-//       }
-//       const captionIndex = captions.reduce((found, item, index) => (t >= item[0] ? index : found), 0);
-//       if (captionIndex !== lastCaption) {
-//         lastCaption = captionIndex;
-//         setCaption(captions[captionIndex][1]);
-//       }
-//     };
-
-//     const animate = (timestamp: number) => {
-//       if (disposed) return;
-//       if (!previousFrame) previousFrame = timestamp;
-//       const delta = Math.min(0.1, (timestamp - previousFrame) / 1000);
-//       previousFrame = timestamp;
-//       const controls = controlsRef.current;
-//       if (controls.restart) {
-//         elapsed = 0;
-//         lastCaption = -1;
-//         controls.restart = false;
-//       }
-//       if (controls.seek !== null) {
-//         elapsed = controls.seek;
-//         controls.seek = null;
-//         lastCaption = -1;
-//       }
-//       if (controls.quality !== lastQuality) {
-//         lastQuality = controls.quality;
-//         resize();
-//       }
-//       if (controls.playing) {
-//         elapsed += delta * controls.speed;
-//         if (elapsed >= DURATION + 3) {
-//           if (controls.loop) elapsed = 0;
-//           else {
-//             elapsed = DURATION;
-//             controls.playing = false;
-//             setPlaying(false);
-//           }
-//         }
-//       }
-//       const currentTime = Math.min(elapsed, DURATION);
-//       uiAccumulator += delta;
-//       const updateUi = uiAccumulator >= 0.1;
-//       if (updateUi) {
-//         uiAccumulator = 0;
-//         setTime(currentTime);
-//       }
-//       renderAt(currentTime, delta, updateUi);
-//       animationFrame = window.requestAnimationFrame(animate);
-//     };
-//     animationFrame = window.requestAnimationFrame(animate);
-
-//     const onFullscreenChange = () => resize();
-//     document.addEventListener("fullscreenchange", onFullscreenChange);
-
-//     return () => {
-//       disposed = true;
-//       window.cancelAnimationFrame(animationFrame);
-//       resizeObserver.disconnect();
-//       stage.removeEventListener("pointermove", onPointerMove);
-//       document.removeEventListener("fullscreenchange", onFullscreenChange);
-//       scene.traverse((object) => {
-//         const mesh = object as THREE.Mesh;
-//         if (mesh.geometry) mesh.geometry.dispose();
-//         if (mesh.material) {
-//           const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-//           materials.forEach((item) => {
-//             Object.values(item).forEach((value) => {
-//               if (value instanceof THREE.Texture) value.dispose();
-//             });
-//             item.dispose();
-//           });
-//         }
-//       });
-//       waterTexture.dispose();
-//       riverTexture.dispose();
-//       renderer.dispose();
-//     };
-//   }, []);
-
-//   const togglePlayback = () => {
-//     const next = !controlsRef.current.playing;
-//     if (next && time >= DURATION) {
-//       controlsRef.current.seek = 0;
-//       setTime(0);
-//     }
-//     controlsRef.current.playing = next;
-//     setPlaying(next);
-//   };
-//   const restart = () => {
-//     controlsRef.current.restart = true;
-//     controlsRef.current.playing = true;
-//     controlsRef.current.seek = 0;
-//     setTime(0);
-//     setPlaying(true);
-//     setCompletedRecipients([false, false, false]);
-//   };
-
-//   const resetScenario = () => {
-//     setRainfallIntensity(70);
-//     setGateMode("AUTO");
-//     setManualGate(0);
-//     setCameraPreset("overview");
-//     restart();
-//   };
-
-//   const toggleFullscreen = async () => {
-//     if (!stageRef.current) return;
-//     if (document.fullscreenElement) await document.exitFullscreen();
-//     else if (stageRef.current.requestFullscreen) await stageRef.current.requestFullscreen();
-//   };
-
-//   return (
-//     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-//       <div className="flex flex-col justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:px-5">
-//         <div className="flex items-center gap-3">
-//           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-700"><Waves size={21} /></div>
-//           <div>
-//             <h2 className="font-bold text-[#102B3D]">3D Early Warning & Dam Automation Simulation</h2>
-//             <p className="mt-1 text-xs text-slate-500">Illustrative sequence: rainfall, sensor alert, SCADA communication and gate release</p>
-//           </div>
-//         </div>
-//         <span className="flex w-fit items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">
-//           <span className="h-2 w-2 rounded-full bg-amber-500" /> SIMULATION MODE
-//         </span>
-//       </div>
-
-//       <div ref={stageRef} className="relative aspect-video min-h-[300px] overflow-hidden bg-[#07163a] text-white max-sm:aspect-[4/5] sm:min-h-[380px]">
-//         <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
-//         <div className="pointer-events-none absolute left-3 top-3 rounded-lg border border-sky-400/50 bg-[#08183acc] px-3 py-2 backdrop-blur sm:left-5 sm:top-5 sm:px-4">
-//           <strong className="block text-sm tracking-[0.18em] sm:text-base">CHETAS</strong>
-//           <span className="hidden text-[10px] text-sky-100/80 sm:block">Control Systems · Water Management</span>
-//         </div>
-//         {status === "ALERT" && (
-//           <div className="pointer-events-none absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-orange-400 bg-red-950/90 px-3 py-2 text-center text-xs font-bold text-orange-200 sm:top-5 sm:text-sm">
-//             <AlertTriangle size={16} /> Illustrative early warning event
-//           </div>
-//         )}
-//         <div className="absolute right-3 top-3 w-[min(48%,245px)] rounded-xl border border-sky-400/50 bg-[#08183acc] p-3 backdrop-blur sm:right-5 sm:top-5 sm:w-[245px] sm:p-4">
-//           <p className="text-[10px] font-semibold uppercase tracking-wider text-sky-200">Simulated SCADA overview · demo values</p>
-//           <div className="mt-2 flex items-end justify-between gap-2">
-//             <div><p className="text-[10px] text-sky-200">Water level</p><p className="text-xl font-bold tabular-nums sm:text-2xl">{level.toFixed(2)} m</p></div>
-//             <span className={`rounded px-2 py-1 text-[9px] font-bold sm:text-[10px] ${status === "ALERT" ? "bg-red-700" : status === "RISING" ? "bg-amber-700" : status === "RELEASING" ? "bg-blue-700" : "bg-emerald-700"}`}>{status}</span>
-//           </div>
-//           <div className="mt-2 flex justify-between gap-2 text-[9px] text-sky-100 sm:text-[10px]">
-//             <span>Inflow {inflow} m³/s</span><span>Outflow {outflow} m³/s</span>
-//           </div>
-//           <div className="mt-1.5 flex justify-between text-[9px] text-sky-100/80 sm:text-[10px]">
-//             <span>Gate position</span>
-//             <strong>{Math.round((gateMode === "AUTO"
-//               ? (peakWaterLevel(rainfallIntensity) >= 684 ? automaticGateOpening(time) : 0)
-//               : manualGate / 100) * 100)}%</strong>
-//           </div>
-//           <div className="mt-3 grid gap-1 text-[9px] text-sky-100 sm:text-[10px]">
-//             {(["Gram Panchayat", "Municipal", "Government authorities"] as const).map((name, index) => (
-//               <span key={name} className={completedRecipients[index] ? "text-emerald-300" : "text-sky-100/70"}>
-//                 {completedRecipients[index] ? "✓" : "○"} {name}
-//               </span>
-//             ))}
-//           </div>
-//         </div>
-//         <div className="absolute bottom-3 left-3 right-3 flex flex-wrap gap-1.5 sm:bottom-5 sm:left-5 sm:right-auto sm:gap-2">
-//           {["1 · Rain & rising water", "2 · Sensor alert", "3 · SCADA & gate release"].map((step, index) => {
-//             const active = (index === 0 && time >= 3.5 && time < 12) || (index === 1 && time >= 12 && time < 21) || (index === 2 && time >= 21);
-//             const done = (index === 0 && time >= 12) || (index === 1 && time >= 21);
-//             return <span key={step} className={`rounded-full border px-2 py-1 text-[9px] sm:px-3 sm:text-[10px] ${active ? "border-sky-300 bg-blue-700 text-white" : done ? "border-blue-400 bg-blue-950 text-white" : "border-blue-400/40 bg-[#08183acc] text-blue-100/70"}`}>{step}</span>;
-//           })}
-//         </div>
-//         {time >= 29.5 && <div className="absolute bottom-3 right-3 rounded-lg border border-emerald-400/70 bg-emerald-950/90 px-3 py-2 text-xs text-emerald-100 sm:bottom-5 sm:right-5"><CheckCircle2 className="mr-1 inline" size={14} /> Simulation sequence completed</div>}
-//         {webglError && <div className="absolute inset-0 flex items-center justify-center bg-slate-950/90 p-6 text-center text-sm text-red-100">3D graphics (WebGL) is unavailable in this browser. Try an up-to-date Chrome, Edge, Firefox or Safari browser.</div>}
-//       </div>
-
-//       <div className="grid gap-4 border-t border-slate-200 bg-slate-50/70 p-4 sm:grid-cols-2 sm:p-5">
-//         <div className="rounded-lg border border-slate-200 bg-white p-4">
-//           <div className="flex items-center justify-between gap-3">
-//             <label htmlFor="rainfall-intensity" className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-//               <CloudRain size={17} className="text-sky-600" /> Rainfall intensity
-//             </label>
-//             <span className="text-sm font-bold tabular-nums text-sky-700">{rainfallIntensity}%</span>
-//           </div>
-//           <input
-//             id="rainfall-intensity"
-//             type="range"
-//             min="0"
-//             max="100"
-//             step="5"
-//             value={rainfallIntensity}
-//             onChange={(event) => setRainfallIntensity(Number(event.target.value))}
-//             className="mt-3 w-full accent-sky-600"
-//           />
-//           <div className="mt-2 flex justify-between text-[11px] text-slate-400">
-//             <span>Low rainfall</span><span>High rainfall</span>
-//           </div>
-//           <p className="mt-2 text-xs leading-5 text-slate-500">Changes simulated rainfall, inflow and reservoir rise. It does not represent a forecast.</p>
-//           <div className="mt-3 flex flex-wrap gap-2">
-//             {[25, 50, 70, 100].map((value) => (
-//               <button key={value} type="button" onClick={() => setRainfallIntensity(value)} className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${rainfallIntensity === value ? "border-sky-500 bg-sky-50 text-sky-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
-//                 {value === 25 ? "Light" : value === 50 ? "Moderate" : value === 70 ? "Heavy" : "Extreme"} · {value}%
-//               </button>
-//             ))}
-//           </div>
-//         </div>
-
-//         <div className="rounded-lg border border-slate-200 bg-white p-4">
-//           <div className="flex items-center justify-between gap-3">
-//             <label htmlFor="gate-mode" className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-//               <Settings2 size={17} className="text-sky-600" /> Gate operation
-//             </label>
-//             <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-800">SIMULATED</span>
-//           </div>
-//           <select id="gate-mode" value={gateMode} onChange={(event) => setGateMode(event.target.value as "AUTO" | "MANUAL")} className="mt-3 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
-//             <option value="AUTO">Automatic sequence</option>
-//             <option value="MANUAL">Manual demonstration control</option>
-//           </select>
-//           {gateMode === "MANUAL" ? (
-//             <>
-//               <div className="mt-3 flex items-center justify-between text-xs text-slate-600">
-//                 <label htmlFor="manual-gate">Illustrative gate opening</label>
-//                 <strong className="tabular-nums text-sky-700">{manualGate}%</strong>
-//               </div>
-//               <input id="manual-gate" type="range" min="0" max="100" step="5" value={manualGate} onChange={(event) => setManualGate(Number(event.target.value))} className="mt-2 w-full accent-sky-600" />
-//               <p className="mt-2 text-xs leading-5 text-slate-500">This slider moves the model gates only. It cannot operate physical equipment.</p>
-//             </>
-//           ) : (
-//             <p className="mt-3 text-xs leading-5 text-slate-500">The demonstration opens the model gates during the release phase when the illustrative alert sequence is reached.</p>
-//           )}
-//         </div>
-
-//         <div className="rounded-lg border border-slate-200 bg-white p-4 sm:col-span-2">
-//           <div className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Camera size={17} className="text-sky-600" /> Camera viewpoints</div>
-//           <div className="mt-3 flex flex-wrap gap-2">
-//             {([{ id: "overview", label: "Full overview" }, { id: "reservoir", label: "Reservoir view" }, { id: "gates", label: "Spillway & gates" }] as const).map((view) => (
-//               <button key={view.id} type="button" onClick={() => setCameraPreset(view.id)} aria-pressed={cameraPreset === view.id} className={`rounded-md border px-3 py-2 text-xs font-semibold transition ${cameraPreset === view.id ? "border-sky-500 bg-sky-50 text-sky-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}>
-//                 {view.label}
-//               </button>
-//             ))}
-//             <span className="self-center text-xs text-slate-400">Move pointer over the 3D scene to look around.</span>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="border-t border-slate-200 px-4 py-4 sm:px-5">
-//         <p className="min-h-12 text-sm leading-6 text-slate-700" aria-live="polite">{caption}</p>
-//         <div className="mt-3 flex flex-wrap items-center gap-2">
-//           <button type="button" onClick={togglePlayback} className="inline-flex items-center gap-2 rounded-lg bg-[#007EBA] px-4 py-2 text-sm font-semibold text-white hover:bg-[#006B9C]">{playing ? <Pause size={15} /> : <Play size={15} />}{playing ? "Pause" : time >= DURATION ? "Replay" : "Play"}</button>
-//           <button type="button" onClick={restart} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"><RotateCcw size={15} /> Restart</button>
-//           <button type="button" onClick={resetScenario} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Reset scenario</button>
-//           <input aria-label="Animation timeline" type="range" min="0" max={DURATION} step="0.1" value={time} onChange={(event) => { const next = Number(event.target.value); controlsRef.current.seek = next; setTime(next); }} className="min-w-[140px] flex-1 accent-sky-600" />
-//           <span className="min-w-12 text-right text-xs tabular-nums text-slate-500">0:{String(Math.floor(time)).padStart(2, "0")}</span>
-//           <label className="flex items-center gap-1.5 text-xs text-slate-600">Speed
-//             <select value={speed} onChange={(event) => setSpeed(Number(event.target.value))} className="rounded-md border border-slate-200 bg-white px-2 py-1.5">
-//               <option value={0.5}>0.5x</option><option value={1}>1x</option><option value={2}>2x</option>
-//             </select>
-//           </label>
-//           <label className="flex items-center gap-1.5 text-xs text-slate-600">Quality
-//             <select value={quality} onChange={(event) => setQuality(event.target.value)} className="rounded-md border border-slate-200 bg-white px-2 py-1.5">
-//               <option value="auto">Auto</option><option value="1920">Full HD</option><option value="3840">4K</option>
-//             </select>
-//           </label>
-//           <label className="flex items-center gap-1.5 text-xs text-slate-600"><input type="checkbox" checked={loop} onChange={(event) => setLoop(event.target.checked)} /> Loop</label>
-//           <button type="button" onClick={toggleFullscreen} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Maximize2 size={14} /> Fullscreen</button>
-//         </div>
-//       </div>
-//       <div className="border-t border-amber-100 bg-amber-50/70 px-4 py-3 sm:px-5">
-//         <p className="text-xs leading-5 text-amber-900"><strong>Demonstration only:</strong> All values, rainfall scenarios, alert references, communications and gate movements are simulated. The controls affect only this 3D model. Nothing here is connected to dam telemetry, PLC or SCADA, represents approved operating limits, or may be used to assess dam safety or operate real equipment.</p>
-//       </div>
-//     </section>
-//   );
-// }
 
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -805,6 +14,7 @@ import {
   CloudRain,
   Map as MapIcon,
   Maximize2,
+  Minimize2,
   Pause,
   Play,
   Radio,
@@ -1936,6 +1146,21 @@ export default function EarlyWarningSimulation() {
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<"hydro" | "structure" | "downstream" | "sensors">("hydro");
   const [webglError, setWebglError] = useState(false);
+  const [isCommandCenterFullscreen, setIsCommandCenterFullscreen] = useState(false);
+  const [isStagePresentation, setIsStagePresentation] = useState(false);
+
+  // Escape closes whichever presentation layer is currently active.
+  useEffect(() => {
+    if (!isCommandCenterFullscreen && !isStagePresentation) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsStagePresentation(false);
+        setIsCommandCenterFullscreen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isCommandCenterFullscreen, isStagePresentation]);
 
   const patch = (next: Partial<Params>) => setParams((prev) => ({ ...prev, ...next }));
   const sim = useMemo(() => simulate(params), [params]);
@@ -2296,8 +1521,12 @@ export default function EarlyWarningSimulation() {
       const width = stage.clientWidth;
       const height = stage.clientHeight;
       if (!width || !height) return;
+      const isSmallScreen = window.matchMedia("(max-width: 767px)").matches;
+      const maxPixelRatio = isSmallScreen ? 1.35 : 2;
       const requested = controlsRef.current.quality === "auto" ? 0 : Number(controlsRef.current.quality);
-      const pixelRatio = requested ? Math.min(4, requested / width) : Math.min(window.devicePixelRatio || 1, 2);
+      const pixelRatio = requested
+        ? Math.min(maxPixelRatio, Math.max(1, requested / width))
+        : Math.min(window.devicePixelRatio || 1, maxPixelRatio);
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
@@ -2586,7 +1815,14 @@ export default function EarlyWarningSimulation() {
   /* Render                                                           */
   /* ---------------------------------------------------------------- */
   return (
-    <section className="overflow-hidden rounded-xl border border-[#17305a] bg-[#050b18] text-slate-100 shadow-lg">
+    <section
+      className={
+        isCommandCenterFullscreen
+          ? "fixed inset-0 z-[110] flex h-[100dvh] w-screen flex-col overflow-y-auto overscroll-contain rounded-none border-0 bg-[#050b18] text-slate-100 shadow-none"
+          : "overflow-hidden rounded-xl border border-[#17305a] bg-[#050b18] text-slate-100 shadow-lg"
+      }
+      aria-label="Multi-hazard early warning command center"
+    >
       {/* header */}
       <div className="flex flex-col justify-between gap-3 border-b border-[#17305a] bg-[#08122a] px-4 py-3 sm:flex-row sm:items-center sm:px-5">
         <div className="flex items-center gap-3">
@@ -2610,12 +1846,28 @@ export default function EarlyWarningSimulation() {
           <span className="flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-200">
             <span className="h-2 w-2 rounded-full bg-amber-400" /> Simulation mode
           </span>
+          <button
+            type="button"
+            onClick={() => setIsCommandCenterFullscreen((current) => !current)}
+            aria-label={isCommandCenterFullscreen ? "Exit command center presentation view" : "Expand command center to fill screen"}
+            aria-pressed={isCommandCenterFullscreen}
+            title={isCommandCenterFullscreen ? "Restore command center (Esc)" : "Expand full command center"}
+            className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-sky-400/50 bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+          >
+            {isCommandCenterFullscreen ? <><Minimize2 size={14} /> Restore View</> : <><Maximize2 size={14} /> Presentation View</>}
+          </button>
         </div>
       </div>
 
-      <div className="grid gap-4 p-3 sm:p-4 xl:grid-cols-[290px_minmax(0,1fr)_320px]">
+      {isCommandCenterFullscreen && (
+        <div className="border-b border-sky-400/20 bg-sky-500/5 px-4 py-2 text-right text-[11px] text-slate-400">
+          Command center presentation view · Press Esc to restore
+        </div>
+      )}
+
+      <div className="grid min-w-0 grid-cols-1 gap-4 p-3 sm:p-4 2xl:grid-cols-[290px_minmax(0,1fr)_320px]">
         {/* ---------------- left: scenario ---------------- */}
-        <aside className="order-2 space-y-4 xl:order-1">
+        <aside className="order-2 min-w-0 space-y-4 2xl:order-1">
           <Panel title="Scenario presets" icon={<Settings2 size={16} className="text-sky-300" />}>
             <div className="grid gap-2">
               {PRESETS.map((preset) => (
@@ -2705,7 +1957,7 @@ export default function EarlyWarningSimulation() {
         </aside>
 
         {/* ---------------- centre: stage + analytics ---------------- */}
-        <div className="order-1 min-w-0 space-y-4 xl:order-2">
+        <div className="order-1 min-w-0 space-y-4 2xl:order-2">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-6">
             {kpis.map((k) => (
               <div key={k.label} className="rounded-lg border border-[#17305a] bg-[#0a1630] px-3 py-2.5">
@@ -2718,9 +1970,16 @@ export default function EarlyWarningSimulation() {
             ))}
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-[#17305a] bg-[#0a1630]">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#17305a] px-3 py-2">
-              <div className="flex gap-2">
+          <div
+            className={
+              isStagePresentation
+                ? "fixed inset-0 z-[120] flex h-[100dvh] w-screen flex-col overflow-hidden rounded-none border-0 bg-[#0a1630] shadow-none"
+                : "overflow-hidden rounded-xl border border-[#17305a] bg-[#0a1630]"
+            }
+            aria-label="3D digital twin and tactical map viewport"
+          >
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-[#17305a] px-3 py-2">
+              <div className="flex min-w-0 flex-wrap gap-2">
                 <button type="button" className={`${pill(view === "twin")} inline-flex items-center gap-1.5`} aria-pressed={view === "twin"} onClick={() => setView("twin")}>
                   <Box size={14} /> 3D digital twin
                 </button>
@@ -2729,7 +1988,7 @@ export default function EarlyWarningSimulation() {
                 </button>
               </div>
               {view === "twin" ? (
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                   <Camera size={14} className="text-sky-300" />
                   {([["overview", "Overview"], ["reservoir", "Reservoir"], ["gates", "Gates"]] as const).map(([id, label]) => (
                     <button key={id} type="button" className={pill(cameraPreset === id)} aria-pressed={cameraPreset === id} onClick={() => setCameraPreset(id)}>
@@ -2746,10 +2005,30 @@ export default function EarlyWarningSimulation() {
                   ))}
                 </div>
               )}
+              <button
+                type="button"
+                onClick={() => setIsStagePresentation((current) => !current)}
+                aria-label={isStagePresentation ? "Exit 3D viewport presentation view" : "Expand 3D viewport to fill screen"}
+                aria-pressed={isStagePresentation}
+                title={isStagePresentation ? "Restore viewport (Esc)" : "Expand 3D viewport for presentation"}
+                className="inline-flex min-h-8 items-center justify-center gap-1.5 rounded-md border border-sky-400/50 bg-sky-500/15 px-2.5 py-1.5 text-[11px] font-semibold text-sky-100 transition hover:border-sky-300 hover:bg-sky-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
+              >
+                {isStagePresentation ? <><Minimize2 size={13} /> Restore</> : <><Maximize2 size={13} /> Presentation View</>}
+              </button>
             </div>
 
-            <div ref={stageRef} className="relative aspect-video min-h-[320px] overflow-hidden bg-[#07163a] text-white max-sm:aspect-[4/5]">
+            <div
+              ref={stageRef}
+              className={isStagePresentation
+                ? "relative min-h-0 w-full flex-1 overflow-hidden bg-[#07163a] text-white"
+                : "relative aspect-[4/3] min-h-[300px] w-full overflow-hidden bg-[#07163a] text-white sm:aspect-video sm:min-h-[360px] lg:min-h-[420px]"}
+            >
               <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+              {isStagePresentation && (
+                <div className="pointer-events-none absolute bottom-3 left-3 z-20 rounded-md border border-sky-300/30 bg-[#08183acc] px-2.5 py-1.5 text-[10px] font-medium text-sky-100 backdrop-blur">
+                  {view === "twin" ? "3D digital twin" : "Tactical map"} · Presentation View
+                </div>
+              )}
               {view === "map" && <TacticalMap frame={frame} sim={sim} time={time} layers={layers} selected={selected} onSelect={setSelected} />}
 
               {view === "twin" && (
@@ -2759,17 +2038,17 @@ export default function EarlyWarningSimulation() {
                 </div>
               )}
               {frame.alert >= 3 && (
-                <div className="pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-orange-400 bg-red-950/90 px-3 py-2 text-center text-xs font-bold text-orange-200 sm:top-4 sm:text-sm">
+                <div className="pointer-events-none absolute left-1/2 top-2 z-10 flex w-[calc(100%-1rem)] max-w-[min(92%,520px)] -translate-x-1/2 flex-wrap items-center justify-center gap-1.5 rounded-lg border border-orange-400 bg-red-950/95 px-2 py-1.5 text-center text-[10px] font-bold leading-tight text-orange-200 sm:top-4 sm:w-auto sm:flex-nowrap sm:px-3 sm:py-2 sm:text-sm">
                   <AlertTriangle size={16} /> {alertMeta.name}: {alertMeta.action}
                 </div>
               )}
               {view === "twin" && (
-                <div className="pointer-events-none absolute right-3 top-3 w-[min(48%,230px)] rounded-xl border border-sky-400/50 bg-[#08183acc] p-3 backdrop-blur sm:right-4 sm:top-4">
+                <div className="pointer-events-none absolute right-2 top-2 w-[min(52%,210px)] rounded-lg border border-sky-400/50 bg-[#08183acc] p-2 backdrop-blur sm:right-4 sm:top-4 sm:w-[230px] sm:rounded-xl sm:p-3">
                   <p className="text-[10px] font-semibold text-sky-200">Simulated SCADA overview, demo values</p>
                   <div className="mt-1.5 flex items-end justify-between gap-2">
                     <div>
                       <p className="text-[10px] text-sky-200">Water level</p>
-                      <p className="font-mono text-xl font-bold tabular-nums">{frame.level.toFixed(2)} m</p>
+                      <p className="font-mono text-base font-bold tabular-nums sm:text-xl">{frame.level.toFixed(2)} m</p>
                     </div>
                     <span className="rounded px-2 py-1 text-[10px] font-bold" style={{ background: alertMeta.color, color: "#04101f" }}>
                       {alertMeta.name}
@@ -2870,7 +2149,7 @@ export default function EarlyWarningSimulation() {
             }
           >
             {tab === "hydro" && (
-              <div className="grid gap-3 lg:grid-cols-2">
+              <div className="grid min-w-0 gap-3 lg:grid-cols-2">
                 <TimeChart
                   title="Reservoir level"
                   unit="m"
@@ -2898,7 +2177,7 @@ export default function EarlyWarningSimulation() {
               </div>
             )}
             {tab === "structure" && (
-              <div className="grid gap-3 lg:grid-cols-2">
+              <div className="grid min-w-0 gap-3 lg:grid-cols-2">
                 <TimeChart
                   title="Ground motion"
                   unit="g"
@@ -2923,7 +2202,7 @@ export default function EarlyWarningSimulation() {
               </div>
             )}
             {tab === "downstream" && (
-              <div className="grid gap-3 lg:grid-cols-2">
+              <div className="grid min-w-0 gap-3 lg:grid-cols-2">
                 <TimeChart
                   title="Flood depth by community"
                   unit="m"
@@ -2992,7 +2271,7 @@ export default function EarlyWarningSimulation() {
         </div>
 
         {/* ---------------- right: response ---------------- */}
-        <aside className="order-3 space-y-4">
+        <aside className="order-3 min-w-0 space-y-4 2xl:order-3">
           <Panel title="Alert level" icon={<Bell size={16} className="text-sky-300" />}>
             <ol className="space-y-1.5">
               {ALERTS.map((a, i) => {
@@ -3100,11 +2379,11 @@ export default function EarlyWarningSimulation() {
         </aside>
       </div>
 
-      <div className="border-t border-amber-400/20 bg-amber-500/5 px-4 py-3 sm:px-5">
+      {/* <div className="border-t border-amber-400/20 bg-amber-500/5 px-4 py-3 sm:px-5">
         <p className="text-xs leading-5 text-amber-100/90">
           <strong>Demonstration only:</strong> All readings, rainfall and seismic scenarios, thresholds, communities and rule responses are simulated and illustrative. One animation second stands for 15 minutes of simulated time. The controls change only this model. Nothing here is connected to dam telemetry, PLC or SCADA, represents approved operating limits, or may be used to assess dam safety or operate real equipment.
         </p>
-      </div>
+      </div> */}
     </section>
   );
 }

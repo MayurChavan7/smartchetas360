@@ -13,6 +13,8 @@ import {
   ChevronRight,
   Globe2,
   MapPin,
+  Maximize2,
+  Minimize2,
   Pause,
   Play,
   Search,
@@ -228,6 +230,16 @@ function Projects() {
   const [autoTour, setAutoTour] = useState(true);
   const [spotlightKey, setSpotlightKey] = useState(0);
   const [mapReady, setMapReady] = useState(false);
+  const [isMapPresentation, setIsMapPresentation] = useState(false);
+
+  useEffect(() => {
+    if (!isMapPresentation) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMapPresentation(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isMapPresentation]);
 
   const projectListRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLUListElement>(null);
@@ -373,7 +385,7 @@ function Projects() {
   }, [selectedLocationId]);
 
   return (
-    <div className="min-w-0 space-y-6 bg-white">
+    <div className={isMapPresentation ? "min-w-0 bg-[#071426]" : "min-w-0 space-y-6 bg-white"}>
       <style>{`
         @keyframes spot-zoom {
           0% { transform: scale(.72); opacity: .5; }
@@ -406,12 +418,15 @@ function Projects() {
         }
       `}</style>
 
-      <PageHeader
-        title="Dam Projects"
-        description="Explore Chetas Control Systems project locations and the organizations served across India."
-      />
+      {!isMapPresentation && (
+        <PageHeader
+          title="Dam Projects"
+          description="Explore Chetas Control Systems project locations and the organizations served across India."
+        />
+      )}
 
       {/* Portfolio summary */}
+      {!isMapPresentation && (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#EAF7FD]">
@@ -459,9 +474,12 @@ function Projects() {
           </p>
         </div>
       </section>
+      )}
 
       {/* 3D map stage */}
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <section className={isMapPresentation
+        ? "fixed inset-0 z-[120] flex h-[100dvh] w-screen flex-col overflow-hidden rounded-none border-0 bg-[#071426] shadow-none"
+        : "overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"}>
         <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -499,6 +517,16 @@ function Projects() {
             </button>
             <button
               type="button"
+              onClick={() => setIsMapPresentation((v) => !v)}
+              aria-pressed={isMapPresentation}
+              title={isMapPresentation ? "Restore page (Esc)" : "Expand map for presentation"}
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-cyan-400/40 bg-[#0B2945] px-3 text-sm font-semibold text-cyan-100 transition hover:bg-[#123B5C]"
+            >
+              {isMapPresentation ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              {isMapPresentation ? "Restore view" : "Presentation view"}
+            </button>
+            <button
+              type="button"
               onClick={() => setAutoTour((v) => !v)}
               aria-pressed={autoTour}
               className={`inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold transition ${
@@ -515,10 +543,12 @@ function Projects() {
 
         {/* Dark control-room stage */}
         <div
-          className="relative flex flex-col gap-3 overflow-hidden bg-[#050b1c] p-3 text-[#eaf4ff] sm:p-4 lg:block lg:h-[720px] lg:p-0"
+          className={isMapPresentation
+            ? "relative min-h-0 w-full flex-1 overflow-hidden bg-[#071426] p-3 text-[#E8F2FF] sm:p-4 lg:block lg:p-0"
+            : "relative flex flex-col gap-3 overflow-hidden bg-[#071426] p-3 text-[#E8F2FF] sm:p-4 lg:block lg:h-[720px] lg:p-0"}
           style={{
             backgroundImage:
-              "radial-gradient(1000px 600px at 70% 35%, #0d2247 0%, transparent 60%), radial-gradient(800px 500px at 10% 90%, #07334a 0%, transparent 55%)",
+              "radial-gradient(900px 560px at 50% 42%, #12345A 0%, transparent 68%), linear-gradient(135deg, #071426 0%, #0A1D35 55%, #071426 100%)",
           }}
         >
           {/* dotted grid + scan line */}
@@ -537,7 +567,9 @@ function Projects() {
           <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-transparent via-cyan-300/5 to-transparent scan-line" />
 
           {/* Map */}
-          <div className="relative z-[1] h-[340px] sm:h-[420px] lg:absolute lg:inset-0 lg:h-auto">
+          <div className={isMapPresentation
+            ? "relative z-[1] h-full min-h-[420px] w-full lg:absolute lg:inset-0"
+            : "relative z-[1] h-[340px] sm:h-[420px] lg:absolute lg:inset-0 lg:h-auto"}>
             <IndiaProjectMap
               activeGeo={selectedLocation.geo}
               projectGeos={PROJECT_GEOS}
@@ -559,7 +591,7 @@ function Projects() {
           {/* Left rail: locations */}
           <nav
             aria-label="Project locations"
-            className="relative z-[2] flex max-h-[360px] flex-col rounded-2xl border border-sky-400/30 bg-[rgba(10,22,48,.68)] p-3.5 shadow-2xl backdrop-blur-xl lg:absolute lg:bottom-16 lg:left-5 lg:top-5 lg:max-h-none lg:w-[270px]"
+            className="relative z-[2] flex max-h-[360px] flex-col rounded-2xl border border-[#244B70] bg-[rgba(8,24,46,.94)] p-3.5 shadow-2xl backdrop-blur-xl lg:absolute lg:bottom-16 lg:left-5 lg:top-5 lg:max-h-none lg:w-[270px]"
           >
             <div className="mb-3 flex gap-2.5">
               <div className="flex-1 rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-2">
@@ -623,7 +655,7 @@ function Projects() {
                         className={on ? "text-amber-400" : "text-sky-400"}
                       />
                       <span className="min-w-0 flex-1 truncate">{loc.name}</span>
-                      {loc.kind && (
+                      {loc.kind && !["delhi", "jammu-kashmir"].includes(loc.id) && (
                         <span className="rounded-md border border-slate-300/40 px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider text-slate-300">
                           {loc.kind === "Country" ? "Country" : "UT"}
                         </span>
@@ -650,12 +682,12 @@ function Projects() {
           </nav>
 
           {/* Legend */}
-          <div className="relative z-[2] flex flex-wrap gap-x-4 gap-y-1 rounded-full border border-sky-400/30 bg-[rgba(10,22,48,.68)] px-4 py-2.5 text-[11px] text-slate-400 backdrop-blur-xl lg:absolute lg:bottom-5 lg:left-5">
+          <div className="relative z-[2] flex flex-wrap gap-x-4 gap-y-1 rounded-full border border-[#244B70] bg-[rgba(8,24,46,.94)] px-4 py-2.5 text-[11px] text-slate-400 backdrop-blur-xl lg:absolute lg:bottom-5 lg:left-5">
             <span className="flex items-center gap-2">
-              <i className="h-2.5 w-2.5 rounded-sm bg-[#f0a820]" /> Active
+              <i className="h-2.5 w-2.5 rounded-sm bg-[#F4B740]" /> Active
             </span>
             <span className="flex items-center gap-2">
-              <i className="h-2.5 w-2.5 rounded-sm bg-[#3a73c0]" /> Project
+              <i className="h-2.5 w-2.5 rounded-sm bg-[#3B82C4]" /> Project
               location
             </span>
             <span className="flex items-center gap-2">
@@ -667,7 +699,7 @@ function Projects() {
           {/* Right card: spotlight */}
           <aside
             aria-live="polite"
-            className="relative z-[2] flex min-h-0 flex-col rounded-2xl border border-sky-400/30 bg-[rgba(10,22,48,.68)] p-5 shadow-2xl backdrop-blur-xl lg:absolute lg:bottom-5 lg:right-5 lg:top-5 lg:w-[410px]"
+            className="relative z-[2] flex min-h-0 flex-col rounded-2xl border border-[#244B70] bg-[rgba(8,24,46,.94)] p-5 shadow-2xl backdrop-blur-xl lg:absolute lg:bottom-5 lg:right-5 lg:top-5 lg:w-[410px]"
           >
             <div className="mb-4 flex items-center gap-3.5 border-b border-sky-400/20 pb-4">
               <div className="pin-float flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-200 to-amber-400 text-amber-950 shadow-[0_0_26px_rgba(251,191,36,.5)]">

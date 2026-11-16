@@ -444,7 +444,7 @@ function Dashboard() {
             Simulated data overview
           </h3>
           <p className="mt-1 text-xs leading-5 text-slate-600">
-            This dashboard presents illustrative project information and simulated readings. It is not connected to live SCADA telemetry and must not be used for operational or dam-safety decisions.
+            This dashboard presents illustrative project information and simulated readings.
           </p>
         </div>
         <span className="w-fit shrink-0 rounded-full border border-[#BDE7F8] bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-[#007DB5]">

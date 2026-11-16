@@ -40,7 +40,7 @@ const PROFILES: Record<DamId, Profile> = {
 }
 
 const TYPE_META: Record<InstType, { label: string; unit: string; dec: number; color: string }> = {
-  piezo: { label: 'Piezometer', unit: 'm', dec: 2, color: '#0098DB' },
+  piezo: { label: 'Leakage Sensor', unit: 'm', dec: 2, color: '#0098DB' },
   seep: { label: 'Seepage weir', unit: 'L/s', dec: 2, color: '#91D8F4' },
   crack: { label: 'Crack / joint meter', unit: 'mm', dec: 3, color: '#fb923c' },
   settle: { label: 'Settlement point', unit: 'mm', dec: 2, color: '#2dd4bf' },
@@ -355,24 +355,33 @@ const SEV: Record<Ev['sev'], { label: string; color: string; chip: string }> = {
   info: { label: 'Info', color: '#0098DB', chip: 'bg-sky-50 text-sky-700' },
 }
 
-const MAINTENANCE_MONTHS = ['Nov', 'Oct', 'Sep', 'Aug', 'Jul'] as const
+const MAINTENANCE_MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'] as const
+type MaintenanceMonth = (typeof MAINTENANCE_MONTHS)[number]
 type MaintenanceMark = 'A' | 'H' | 'M' | 'Q' | '—'
-const DAM_INSTRUMENT_MAINTENANCE: { instrument: string; schedule: Record<(typeof MAINTENANCE_MONTHS)[number], MaintenanceMark> }[] = [
-  { instrument: 'Gate position transmitter', schedule: { Nov: 'M', Oct: 'M', Sep: 'M', Aug: 'M', Jul: 'M' } },
-  { instrument: 'Rotary encoder', schedule: { Nov: '—', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
-  { instrument: 'Open / close limit switch', schedule: { Nov: 'M', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
-  { instrument: 'Water level transmitter', schedule: { Nov: 'M', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
-  { instrument: 'Pressure transmitter', schedule: { Nov: 'Q', Oct: '—', Sep: '—', Aug: 'Q', Jul: '—' } },
-  { instrument: 'Load cell', schedule: { Nov: 'Q', Oct: '—', Sep: '—', Aug: 'Q', Jul: '—' } },
-  { instrument: 'Flow meter', schedule: { Nov: 'Q', Oct: '—', Sep: '—', Aug: 'Q', Jul: '—' } },
-  { instrument: 'Vibration sensor', schedule: { Nov: 'M', Oct: 'M', Sep: 'M', Aug: 'M', Jul: '—' } },
-  { instrument: 'Temperature sensor', schedule: { Nov: 'M', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
-  { instrument: 'PLC panel', schedule: { Nov: 'M', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
-  { instrument: 'SCADA server', schedule: { Nov: 'M', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
-  { instrument: 'VFD', schedule: { Nov: 'M', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
-  { instrument: 'Hydraulic power pack', schedule: { Nov: 'M', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
-  { instrument: 'UPS', schedule: { Nov: 'M', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
-  { instrument: 'Ethernet switch', schedule: { Nov: 'M', Oct: '—', Sep: '—', Aug: '—', Jul: '—' } },
+
+const makeMaintenanceSchedule = (...entries: [MaintenanceMonth, MaintenanceMark][]) =>
+  Object.fromEntries(
+    MAINTENANCE_MONTHS.map((month) => [month, entries.find(([scheduledMonth]) => scheduledMonth === month)?.[1] ?? '—']),
+  ) as Record<MaintenanceMonth, MaintenanceMark>
+
+// Proposed annual preventive-maintenance plan (April–March).
+// Confirm intervals and shutdown windows against OEM manuals and the dam's approved O&M plan.
+const DAM_INSTRUMENT_MAINTENANCE: { instrument: string; schedule: Record<MaintenanceMonth, MaintenanceMark> }[] = [
+  { instrument: 'Gate position transmitter', schedule: makeMaintenanceSchedule(...MAINTENANCE_MONTHS.map((month) => [month, 'M'] as [MaintenanceMonth, MaintenanceMark])) },
+  { instrument: 'Rotary encoder', schedule: makeMaintenanceSchedule(['Mar', 'A']) },
+  { instrument: 'Open / close limit switch', schedule: makeMaintenanceSchedule(['Jun', 'Q'], ['Sep', 'Q'], ['Dec', 'Q'], ['Mar', 'Q']) },
+  { instrument: 'Water level transmitter', schedule: makeMaintenanceSchedule(['Jun', 'Q'], ['Sep', 'Q'], ['Dec', 'Q'], ['Mar', 'Q']) },
+  { instrument: 'Pressure transmitter', schedule: makeMaintenanceSchedule(['May', 'Q'], ['Aug', 'Q'], ['Nov', 'Q'], ['Feb', 'Q']) },
+  { instrument: 'Load cell', schedule: makeMaintenanceSchedule(['Apr', 'H'], ['Oct', 'H']) },
+  { instrument: 'Flow meter', schedule: makeMaintenanceSchedule(['May', 'Q'], ['Aug', 'Q'], ['Nov', 'Q'], ['Feb', 'Q']) },
+  { instrument: 'Vibration sensor', schedule: makeMaintenanceSchedule(...MAINTENANCE_MONTHS.map((month) => [month, 'M'] as [MaintenanceMonth, MaintenanceMark])) },
+  { instrument: 'Temperature sensor', schedule: makeMaintenanceSchedule(['Jun', 'Q'], ['Sep', 'Q'], ['Dec', 'Q'], ['Mar', 'Q']) },
+  { instrument: 'PLC panel', schedule: makeMaintenanceSchedule(['Apr', 'H'], ['Oct', 'H']) },
+  { instrument: 'SCADA server', schedule: makeMaintenanceSchedule(['Apr', 'Q'], ['Jul', 'Q'], ['Oct', 'Q'], ['Jan', 'Q']) },
+  { instrument: 'VFD', schedule: makeMaintenanceSchedule(['Apr', 'H'], ['Oct', 'H']) },
+  { instrument: 'Hydraulic power pack', schedule: makeMaintenanceSchedule(['May', 'Q'], ['Aug', 'Q'], ['Nov', 'Q'], ['Feb', 'Q']) },
+  { instrument: 'UPS', schedule: makeMaintenanceSchedule(['Jun', 'Q'], ['Sep', 'Q'], ['Dec', 'Q'], ['Mar', 'Q']) },
+  { instrument: 'Ethernet switch', schedule: makeMaintenanceSchedule(['Apr', 'H'], ['Oct', 'H']) },
 ]
 
 export default function DamSafety() {
@@ -567,7 +576,7 @@ export default function DamSafety() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6" aria-label="Safety indicators">
         <Kpi label="Instrumentation" icon={Radio} color="#0098DB" value={`${online}/${total}`} unit="online" spark={complete}
           chip={{ text: `${fmt(dq, 0)}% healthy`, state: dq >= 95 ? 'normal' : dq >= 85 ? 'watch' : 'alert' }} sub={`${counts.stale} stale · ${counts.offline} offline`} />
-        <Kpi label="Piezometric level (mean)" icon={Waves} color="#91D8F4" value={fmt(pzMean)} unit="m" spark={agg(mean, 'piezo')} chip={{ text: STATE_META[worst('piezo')].label, state: worst('piezo') }}
+        <Kpi label="Leakage Sensor level (mean)" icon={Waves} color="#91D8F4" value={fmt(pzMean)} unit="m" spark={agg(mean, 'piezo')} chip={{ text: STATE_META[worst('piezo')].label, state: worst('piezo') }}
           delta={{ text: `${sgn(pzMean - pz24)}${fmt(pzMean - pz24)} m`, dir: dir(pzMean - pz24) }} sub={`Highest ${pzTop?.m.id} · ${fmt(pzTop?.value ?? NaN)} m`} />
         <Kpi label="Seepage (total)" icon={Activity} color="#34d399" value={fmt(swSum)} unit="L/s" spark={agg(sum, 'seep')} chip={{ text: STATE_META[worst('seep')].label, state: worst('seep') }}
           delta={{ text: `${sgn(swSum - sw24)}${fmt(swSum - sw24)} L/s`, dir: dir(swSum - sw24) }} sub={`${sw.length} seepage weirs`} />
@@ -578,7 +587,7 @@ export default function DamSafety() {
         <Kpi label="Data completeness" icon={ShieldCheck} color="#a78bfa" value={fmt(complete[complete.length - 1], 0)} unit="%" spark={complete} sub="Readings received this interval" />
       </section>
 
-      {/* Row 1: status board, events, piezometric profile */}
+      {/* Row 1: status board, events, Leakage Sensor profile */}
       <section className="grid gap-5 xl:grid-cols-3">
         <div className={`${card} p-5`}>
           <h3 className="font-semibold text-[#102B3D]">Instrument status board</h3>
@@ -615,17 +624,17 @@ export default function DamSafety() {
         </div>
 
         <div className={`${card} p-5`}>
-          <h3 className="font-semibold text-[#102B3D]">Piezometric profile</h3>
-          <p className="mt-0.5 text-xs text-slate-600">Current level per piezometer · bar colour = status</p>
+          <h3 className="font-semibold text-[#102B3D]">Leakage Sensor profile</h3>
+          <p className="mt-0.5 text-xs text-slate-600">Current level per Leakage Sensor · bar colour = status</p>
           <ReactECharts option={profileOpt} style={{ height: 300 }} lazyUpdate />
           <div className="flex flex-wrap gap-3 text-[11px] text-slate-600">{(['normal', 'watch', 'alert', 'stale', 'offline'] as State[]).map((k) => <span key={k} className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: STATE_META[k].color }} />{STATE_META[k].label}</span>)}</div>
         </div>
       </section>
 
-      {/* Row 2: piezometer trends + scatter */}
+      {/* Row 2: Leakage Sensor trends + scatter */}
       <section className="grid gap-5 xl:grid-cols-3">
         <div className="xl:col-span-2">
-          <LinePanel title="Piezometric levels" subtitle="All piezometers against the reservoir level (right axis)" unit="m" unit2="m (reservoir)" badge={RANGES[range].label} accent="#0098DB" height={330}
+          <LinePanel title="Leakage Sensor levels" subtitle="All Leakage Sensors against the reservoir level (right axis)" unit="m" unit2="m (reservoir)" badge={RANGES[range].label} accent="#0098DB" height={330}
             series={[...palette(pz), levelSeries]} />
         </div>
         <div className={`${card} p-5`}>
@@ -689,7 +698,7 @@ export default function DamSafety() {
             <div>
               <h3 className="text-sm font-semibold text-[#102B3D]">Annual maintenance planning</h3>
               <p className="mt-1 text-sm leading-6 text-slate-600">
-                Keep a yearly maintenance record for every dam instrument, including inspection date, calibration or functional-check result, work performed, technician, and next due date. The annual maintenance dates are not specified in the supplied schedule, so they are left for the maintenance team to confirm.
+                This proposed April–March plan places the rotary encoder's annual service in March, ahead of the monsoon season. Record the actual inspection date, functional-check or calibration result, work performed, technician, and next due date for every activity.
               </p>
             </div>
           </div>
@@ -698,8 +707,8 @@ export default function DamSafety() {
         <div>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h3 className="font-semibold text-[#102B3D]">Maintenance calendar</h3>
-              <p className="mt-0.5 text-xs text-slate-600">Schedule transcribed from the supplied maintenance note.</p>
+              <h3 className="font-semibold text-[#102B3D]">12-month maintenance calendar</h3>
+              <p className="mt-0.5 text-xs text-slate-600">Annual preventive-maintenance plan · April to March</p>
             </div>
             <span className="text-xs text-slate-500">Month-wise view</span>
           </div>
@@ -732,7 +741,7 @@ export default function DamSafety() {
             </table>
           </div>
           <p className="mt-2 text-[11px] leading-5 text-slate-500">
-            A = Annual maintenance · H = Half-year inspection · M = Monthly inspection · Q = Quarterly maintenance · — = No activity marked in the supplied note.
+            A = Annual maintenance · H = Half-yearly maintenance · M = Monthly inspection · Q = Quarterly maintenance · — = No scheduled activity. Rotary encoder annual maintenance is planned for March; confirm all intervals against OEM recommendations and the approved dam O&M plan.
           </p>
         </div>
       </section>

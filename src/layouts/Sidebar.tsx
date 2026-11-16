@@ -24,6 +24,7 @@ const menuItems = [
   { label: "Dam Safety", icon: ShieldCheck, path: "/dam-safety" },
   { label: "Analytics", icon: BarChart3, path: "/analytics" },
   { label: "Reports", icon: FileText, path: "/reports" },
+  { label: "Predictive Analysis", icon: BarChart3, path: "/predictive-analysis" },
 ];
 
 function Sidebar({ onNavigate }: SidebarProps) {

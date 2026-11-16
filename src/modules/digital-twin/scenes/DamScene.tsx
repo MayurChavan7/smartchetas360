@@ -2302,10 +2302,10 @@ function DamScene() {
   const split = snap.Qout > 1 ? [snap.Qg, snap.Qp, snap.Qc].map((v) => (v / snap.Qout) * 100) : [0, 0, 0];
 
   const panelBase =
-    "absolute top-14 bottom-20 z-10 w-72 max-w-[calc(100%-1rem)] overflow-y-auto rounded-xl border border-slate-700/70 bg-slate-950/90 p-3 text-xs text-slate-200 backdrop-blur-md";
+    "absolute top-14 bottom-20 z-10 w-[calc(100%-1rem)] sm:w-72 max-w-[calc(100%-1rem)] overflow-x-hidden overflow-y-auto overscroll-contain rounded-xl border border-slate-700/70 bg-slate-950/95 p-3 text-xs text-slate-200 shadow-2xl backdrop-blur-md sm:top-14 sm:bottom-20";
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-slate-950 text-slate-200">
+    <div className="relative h-full min-h-[520px] w-full min-w-0 overflow-hidden bg-slate-950 text-slate-200">
       {/* ================= 3D CANVAS ================= */}
       <div className="absolute inset-0">
         <Canvas
@@ -2341,7 +2341,7 @@ function DamScene() {
       {/* ================= HEADER ================= */}
       <div className="absolute left-0 right-0 top-0 z-20 flex items-center gap-3 bg-slate-900/95 px-3 py-2 backdrop-blur">
         <div className="min-w-0">
-          <div className="hidden text-[10px] font-bold tracking-widest text-slate-400 sm:block">
+          <div className="hidden text-[10px] font-bold tracking-widest text-slate-400 md:block">
             CHETAS CONTROL SYSTEMS PVT LTD
           </div>
           <div className="truncate text-sm font-bold text-white sm:text-base">
@@ -2349,21 +2349,41 @@ function DamScene() {
           </div>
         </div>
         <div className="flex-1" />
-        <div className="hidden text-right text-[11px] tabular-nums text-slate-400 md:block">
+        <div className="hidden text-right text-[11px] tabular-nums text-slate-400 lg:block">
           <div>{clockStr(snap.clock)} (sim)</div>
           <div>{snap.paused ? "PAUSED" : `${snap.speed.toFixed(1)}x`}</div>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-bold text-white ${TONE_BG[tone]}`}>
           {snap.alarm}
         </span>
-        <Btn onClick={() => setLeftOpen((v) => !v)}>Controls</Btn>
-        <Btn onClick={() => setRightOpen((v) => !v)}>Instruments</Btn>
+        <Btn
+          onClick={() => {
+            setLeftOpen((v) => {
+              const next = !v;
+              if (next && window.innerWidth < 640) setRightOpen(false);
+              return next;
+            });
+          }}
+        >
+          Controls
+        </Btn>
+        <Btn
+          onClick={() => {
+            setRightOpen((v) => {
+              const next = !v;
+              if (next && window.innerWidth < 640) setLeftOpen(false);
+              return next;
+            });
+          }}
+        >
+          Instruments
+        </Btn>
       </div>
 
       {/* ================= ALARM BANNER ================= */}
       {snap.alarm !== "NORMAL" && (
         <div
-          className={`absolute left-1/2 top-14 z-30 flex max-w-[90vw] -translate-x-1/2 items-center gap-3 rounded-lg px-4 py-1.5 text-sm font-bold text-white shadow-lg ${TONE_BG[tone]} ${unacked ? "animate-pulse" : ""}`}
+          className={`absolute left-1/2 top-[4.25rem] z-30 flex w-[calc(100%-1rem)] max-w-[90vw] -translate-x-1/2 flex-wrap items-center justify-center gap-2 rounded-lg px-3 py-2 text-center text-xs font-bold text-white shadow-lg sm:top-14 sm:w-auto sm:flex-nowrap sm:px-4 sm:py-1.5 sm:text-sm ${TONE_BG[tone]} ${unacked ? "animate-pulse" : ""}`}
         >
           <span>{bannerText}</span>
           {unacked ? (
@@ -2385,7 +2405,7 @@ function DamScene() {
 
       {/* ================= LEFT PANEL ================= */}
       {leftOpen && (
-        <aside className={`${panelBase} left-2`}>
+        <aside className={`${panelBase} left-2 sm:right-auto`}>
           <Section>Scenario</Section>
           <div className="flex flex-wrap gap-1.5">
             <Btn on={snap.scenario === "NORMAL"} onClick={() => setScenario("NORMAL")}>Normal</Btn>
@@ -2574,7 +2594,7 @@ function DamScene() {
 
       {/* ================= RIGHT PANEL ================= */}
       {rightOpen && (
-        <aside className={`${panelBase} right-2`}>
+        <aside className={`${panelBase} right-2 sm:left-auto`}>
           {sel && (
             <div className="mb-3 rounded-lg border border-sky-500 bg-slate-800 p-2">
               <div className="text-[11px] text-slate-400">
@@ -2660,7 +2680,7 @@ function DamScene() {
       )}
 
       {/* ================= BOTTOM BAR ================= */}
-      <div className="absolute bottom-2 left-1/2 z-20 flex max-w-[calc(100%-1rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-1.5 rounded-xl border border-slate-700/70 bg-slate-950/90 p-1.5 backdrop-blur-md">
+      <div className="absolute bottom-2 left-1/2 z-20 flex max-h-[32dvh] w-[calc(100%-1rem)] max-w-[calc(100%-1rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-1.5 overflow-y-auto overscroll-contain rounded-xl border border-slate-700/70 bg-slate-950/95 p-1.5 shadow-xl backdrop-blur-md sm:max-h-none sm:w-auto sm:max-w-[calc(100%-1rem)] sm:overflow-visible">
         {CAM_BUTTONS.map((c) => (
           <Btn key={c.key} onClick={() => { stopTour(); goCam(c.key); }}>
             {c.label}

@@ -11,7 +11,7 @@ import DamSafety from "./pages/DamSafety";
 import Analytics from "./pages/Analytics";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
-
+import Prediction from "./pages/Prediction";
 import InstrumentationPage from "./modules/dam-safety/pages/InstrumentationPage";
 import SafetyParametersPage from "./modules/dam-safety/pages/SafetyParametersPage";
 import SafetyEventsPage from "./modules/dam-safety/pages/SafetyEventsPage";
@@ -26,6 +26,7 @@ import ReservoirReportsPage from "./modules/reports/pages/ReservoirReportsPage";
 import DischargeReportsPage from "./modules/reports/pages/DischargeReportsPage";
 import RainfallReportsPage from "./modules/reports/pages/RainfallReportsPage";
 import SafetyReportsPage from "./modules/reports/pages/SafetyReportsPage";
+
 
 function App() {
   return (
@@ -51,6 +52,10 @@ function App() {
           <Route path="/dam-safety" element={<DamSafety />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/reports" element={<Reports />} />
+          <Route
+  path="/predictive-analysis"
+  element={<Prediction />}
+/>
           <Route path="/settings" element={<Settings />} />
 
           {/* DAM SAFETY */}
@@ -106,6 +111,8 @@ function App() {
             path="/reports/:category"
             element={<ReportCategoryPage />}
           />
+
+
 
         </Route>
       </Routes>
