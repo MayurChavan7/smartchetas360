@@ -134,7 +134,7 @@ function generateHistory(p: DamProfile, now: number): History {
   return h
 }
 
-function initLive(p: DamProfile, h: History): Live {
+function initLive(h: History): Live  {
   const i = h.t.length - 1
   return {
     level: h.level[i], storage: h.storage[i], inflow: h.inflow[i], gateFlow: h.gateFlow[i], canal: h.canal[i], outflow: h.outflow[i],
@@ -226,12 +226,12 @@ function buildEvents(p: DamProfile, h: History): LogEvent[] {
 function useLiveDam(id: DamId, intervalMs: number, paused: boolean) {
   const profile = PROFILES[id]
   const hist = useMemo(() => generateHistory(profile, Date.now()), [profile])
-  const live = useRef<Live>(initLive(profile, hist))
+const live = useRef<Live>(initLive(hist))
   const spark = useRef<Spark>(emptySpark())
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
-    live.current = initLive(profile, hist)
+  live.current = initLive(hist)
     spark.current = emptySpark()
     for (let i = 0; i < 30; i++) stepLive(profile, hist, live.current, spark.current, hist.t[hist.t.length - 1])   // pre-fill sparklines
     setTick((n) => n + 1)

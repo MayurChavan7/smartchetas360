@@ -4,7 +4,6 @@ import {
   Activity,
   Building2,
   MapPin,
-  ArrowUpRight,
   Gauge,
   ShieldCheck,
   Map,

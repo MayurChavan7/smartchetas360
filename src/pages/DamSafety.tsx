@@ -116,7 +116,11 @@ function generate(p: Profile, now: number): Data {
 
 const lastValid = (v: number[]) => { for (let i = v.length - 1; i >= 0; i--) if (!Number.isNaN(v[i])) return i; return -1 }
 const bandRatio = (m: Instrument, x: number) => (x > m.hi ? x - m.hi : x < m.lo ? m.lo - x : 0) / m.span
-const bandState = (m: Instrument, x: number): State => { const r = bandRatio(m, x); return r > 0.6 ? 'alert' : r > 0.25 ? 'watch' : 'normal' }
+type BandState = 'normal' | 'watch' | 'alert'
+const bandState = (m: Instrument, x: number): BandState => {
+  const r = bandRatio(m, x)
+  return r > 0.6 ? 'alert' : r > 0.25 ? 'watch' : 'normal'
+}
 
 function statusOf(m: Instrument, t: number[], now: number): { state: State; value: number; at: number } {
   const li = lastValid(m.v)
@@ -133,7 +137,7 @@ function buildEvents(data: Data): Ev[] {
   const out: Ev[] = []
   for (const m of data.inst) {
     const meta = TYPE_META[m.type]
-    let prev: State = 'normal', gap = 0
+    let prev: BandState = 'normal', gap = 0
     for (let i = 0; i < N; i++) {
       const x = m.v[i]
       if (Number.isNaN(x)) { gap++; if (gap === 6) out.push({ id: `${m.id}-g${i}`, t: data.t[i], sev: 'comm', text: `${m.id}: no data for 3 h` }); continue }

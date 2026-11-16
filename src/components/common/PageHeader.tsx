@@ -1,17 +1,22 @@
 
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface PageHeaderProps {
   title: string;
-  description: string;
+  description?: string;
+  subtitle?: string;
   children?: ReactNode;
 }
 
 function PageHeader({
   title,
   description,
+  subtitle,
   children,
 }: PageHeaderProps) {
+  // Support both prop names used across the application.
+  const supportingText = description ?? subtitle;
+
   return (
     <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
       <div className="min-w-0">
@@ -19,9 +24,11 @@ function PageHeader({
           {title}
         </h1>
 
-        <p className="mt-2 text-sm font-medium leading-relaxed text-[#64748B] sm:text-base">
-          {description}
-        </p>
+        {supportingText && (
+          <p className="mt-2 text-sm font-medium leading-relaxed text-[#64748B] sm:text-base">
+            {supportingText}
+          </p>
+        )}
       </div>
 
       {children && (
