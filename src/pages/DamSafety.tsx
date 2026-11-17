@@ -355,7 +355,7 @@ const SEV: Record<Ev['sev'], { label: string; color: string; chip: string }> = {
   info: { label: 'Info', color: '#0098DB', chip: 'bg-sky-50 text-sky-700' },
 }
 
-const MAINTENANCE_MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'] as const
+const MAINTENANCE_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const
 type MaintenanceMonth = (typeof MAINTENANCE_MONTHS)[number]
 type MaintenanceMark = 'A' | 'H' | 'M' | 'Q' | '—'
 
@@ -364,7 +364,8 @@ const makeMaintenanceSchedule = (...entries: [MaintenanceMonth, MaintenanceMark]
     MAINTENANCE_MONTHS.map((month) => [month, entries.find(([scheduledMonth]) => scheduledMonth === month)?.[1] ?? '—']),
   ) as Record<MaintenanceMonth, MaintenanceMark>
 
-// Proposed annual preventive-maintenance plan (April–March).
+// Proposed annual preventive-maintenance plan (January–December).
+// The calendar UI displays January through the current month only.
 // Confirm intervals and shutdown windows against OEM manuals and the dam's approved O&M plan.
 const DAM_INSTRUMENT_MAINTENANCE: { instrument: string; schedule: Record<MaintenanceMonth, MaintenanceMark> }[] = [
   { instrument: 'Gate position transmitter', schedule: makeMaintenanceSchedule(...MAINTENANCE_MONTHS.map((month) => [month, 'M'] as [MaintenanceMonth, MaintenanceMark])) },
@@ -397,6 +398,8 @@ export default function DamSafety() {
   const [acked, setAcked] = useState<Set<string>>(new Set())
   const [evShow, setEvShow] = useState(8)
   useEffect(() => { const t = setInterval(() => setClock(Date.now()), 1000); return () => clearInterval(t) }, [])
+  // Show only elapsed months in the current calendar year (January through this month).
+  const maintenanceMonthsToDate = MAINTENANCE_MONTHS.slice(0, new Date(clock).getMonth() + 1)
   useEffect(() => { setSelId('PZ-01'); setAcked(new Set()) }, [damId])
 
   const { profile, data, tick } = useLiveSafety(damId, intervalMs, paused)
@@ -557,7 +560,7 @@ export default function DamSafety() {
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-semibold text-amber-700">
               <span className="relative flex h-2 w-2"><span className={`absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-70 ${running ? 'animate-ping' : ''}`} /><span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" /></span>
-              {running ? 'SIMULATED LIVE FEED' : 'SIMULATION PAUSED'}
+              {running ? '  ' : 'SIMULATION PAUSED'}
             </span>
             <span className="inline-flex items-center gap-1.5 text-slate-600"><Clock size={13} />{new Date(clock).toLocaleTimeString('en-IN')}{secs > 0 ? '' : ''}</span>
             <span className="inline-flex items-center gap-1.5 text-slate-500"><Radio size={13} />{profile.location}</span>
@@ -698,7 +701,7 @@ export default function DamSafety() {
             <div>
               <h3 className="text-sm font-semibold text-[#102B3D]">Annual maintenance planning</h3>
               <p className="mt-1 text-sm leading-6 text-slate-600">
-                This proposed April–March plan places the rotary encoder's annual service in March, ahead of the monsoon season. Record the actual inspection date, functional-check or calibration result, work performed, technician, and next due date for every activity.
+                The calendar is shown from January through the current month. The rotary encoder's annual service is planned for March, ahead of the monsoon season. Record the actual inspection date, functional-check or calibration result, work performed, technician, and next due date for every activity.
               </p>
             </div>
           </div>
@@ -707,8 +710,8 @@ export default function DamSafety() {
         <div>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h3 className="font-semibold text-[#102B3D]">12-month maintenance calendar</h3>
-              <p className="mt-0.5 text-xs text-slate-600">Annual preventive-maintenance plan · April to March</p>
+              <h3 className="font-semibold text-[#102B3D]">Maintenance calendar</h3>
+              <p className="mt-0.5 text-xs text-slate-600">Annual preventive-maintenance plan · January to {maintenanceMonthsToDate[maintenanceMonthsToDate.length - 1]}</p>
             </div>
             <span className="text-xs text-slate-500">Month-wise view</span>
           </div>
@@ -717,14 +720,14 @@ export default function DamSafety() {
               <thead className="bg-white text-xs uppercase tracking-wide text-slate-600">
                 <tr>
                   <th className="sticky left-0 z-10 bg-white px-4 py-3 text-left font-medium">Instrument / equipment</th>
-                  {MAINTENANCE_MONTHS.map((month) => <th key={month} className="px-4 py-3 text-center font-medium">{month}</th>)}
+                  {maintenanceMonthsToDate.map((month) => <th key={month} className="px-4 py-3 text-center font-medium">{month}</th>)}
                 </tr>
               </thead>
               <tbody>
                 {DAM_INSTRUMENT_MAINTENANCE.map((item) => (
                   <tr key={item.instrument} className="border-t border-[#DCE7EE]/70 hover:bg-[#EAF7FD]/30">
                     <td className="sticky left-0 bg-white px-4 py-3 font-medium text-slate-700">{item.instrument}</td>
-                    {MAINTENANCE_MONTHS.map((month) => {
+                    {maintenanceMonthsToDate.map((month) => {
                       const mark = item.schedule[month]
                       const colors: Record<MaintenanceMark, string> = {
                         A: 'bg-sky-500/15 text-sky-700 border-sky-500/30',
@@ -741,7 +744,7 @@ export default function DamSafety() {
             </table>
           </div>
           <p className="mt-2 text-[11px] leading-5 text-slate-500">
-            A = Annual maintenance · H = Half-yearly maintenance · M = Monthly inspection · Q = Quarterly maintenance · — = No scheduled activity. Rotary encoder annual maintenance is planned for March; confirm all intervals against OEM recommendations and the approved dam O&M plan.
+            A = Annual maintenance · H = Half-yearly maintenance · M = Monthly inspection · Q = Quarterly maintenance · — = No scheduled activity. Only January through the current month is displayed; future months are hidden. Confirm all intervals against OEM recommendations and the approved dam O&M plan.
           </p>
         </div>
       </section>

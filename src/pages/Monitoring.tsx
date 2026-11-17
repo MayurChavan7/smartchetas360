@@ -200,21 +200,78 @@ function stats(d: [number, number][]): Stats {
 }
 
 interface LogEvent { t: number; kind: 'gate' | 'rain' | 'zone'; text: string }
-function buildEvents(p: DamProfile, h: History): LogEvent[] {
+
+// The event log uses the current calendar day in India Standard Time (IST).
+// India does not observe daylight saving time, so midnight IST is UTC midnight - 5h 30m.
+function startOfTodayIndia(now: number): number {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(now))
+  const part = (type: string) => parts.find((item) => item.type === type)?.value ?? '0'
+  const year = Number(part('year'))
+  const month = Number(part('month'))
+  const day = Number(part('day'))
+  return Date.UTC(year, month - 1, day) - (5 * 60 + 30) * 60 * 1000
+}
+
+function formatEventTime(timestamp: number): string {
+  return new Date(timestamp).toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
+function formatTodayIndia(now: number): string {
+  return new Date(now).toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+function buildEvents(p: DamProfile, h: History, now: number): LogEvent[] {
   const ev: LogEvent[] = []
-  const end = h.t.length, start = Math.max(1, end - 288 * 3), S = 6
-  let wasRain = false, lastZone = zoneOfLevel(p, h.level[start - 1])
-  for (let i = start; i < end; i += S) {
+  const end = h.t.length
+  const start = Math.max(0, firstIndex(h.t, startOfTodayIndia(now)))
+  const S = 6 // evaluate event transitions every 30 minutes
+  if (start >= end - 1) return ev
+
+  // Start from the first complete 30-minute window within today. This prevents
+  // yesterday's gate/rain/level state from leaking into today's event log.
+  let wasRain = false
+  let lastZone = zoneOfLevel(p, h.level[start])
+  for (let i = Math.min(start + S, end - 1); i < end; i += S) {
     h.gates.forEach((g, gi) => {
-      const a = g[i - S] ?? g[i], b = g[i]
+      const a = g[i - S] ?? g[i]
+      const b = g[i]
       if (a < 1 && b >= 3) ev.push({ t: h.t[i], kind: 'gate', text: `Gate ${String(gi + 1).padStart(2, '0')} opened to ${b.toFixed(0)}%` })
       if (a >= 3 && b < 1) ev.push({ t: h.t[i], kind: 'gate', text: `Gate ${String(gi + 1).padStart(2, '0')} closed` })
     })
-    let rs = 0; for (let q = i - S; q < i; q++) rs += h.rain[q] ?? 0
-    if (!wasRain && rs > 0.3) { ev.push({ t: h.t[i], kind: 'rain', text: `Rainfall started (${(rs * 2).toFixed(1)} mm/h)` }); wasRain = true }
-    if (wasRain && rs < 0.05) { ev.push({ t: h.t[i], kind: 'rain', text: 'Rainfall stopped' }); wasRain = false }
+
+    let rs = 0
+    for (let q = i - S; q < i; q++) rs += h.rain[q] ?? 0
+    if (!wasRain && rs > 0.3) {
+      ev.push({ t: h.t[i], kind: 'rain', text: `Rainfall started (${(rs * 2).toFixed(1)} mm/h)` })
+      wasRain = true
+    }
+    if (wasRain && rs < 0.05) {
+      ev.push({ t: h.t[i], kind: 'rain', text: 'Rainfall stopped' })
+      wasRain = false
+    }
+
     const z = zoneOfLevel(p, h.level[i])
-    if (z !== lastZone) { ev.push({ t: h.t[i], kind: 'zone', text: `Level entered ${z} band (illustrative)` }); lastZone = z }
+    if (z !== lastZone) {
+      ev.push({ t: h.t[i], kind: 'zone', text: `Level entered ${z} band (illustrative)` })
+      lastZone = z
+    }
   }
   return ev.sort((a, b) => b.t - a.t).slice(0, 12)
 }
@@ -589,7 +646,7 @@ function Monitoring() {
   const rain1 = hist.rain.slice(-12).reduce((a, b) => a + b, 0), rainPrev = hist.rain.slice(-24, -12).reduce((a, b) => a + b, 0)
   const ago = Math.max(0, Math.round((clock - live.at) / 1000))
   const running = !paused && intervalMs > 0
-  const events = useMemo(() => buildEvents(profile, hist), [profile, hist, Math.floor(tick / 30)]) // eslint-disable-line react-hooks/exhaustive-deps
+  const events = useMemo(() => buildEvents(profile, hist, clock), [profile, hist, Math.floor(clock / 60000), Math.floor(tick / 30)]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------- series definitions ----------
   const s = (key: string, name: string, color: string, src: { data: [number, number][]; compare?: [number, number][] }, extra: Partial<TrendSeries> = {}): TrendSeries => ({ key, name, color, ...src, ...extra })
@@ -665,7 +722,7 @@ function Monitoring() {
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 font-semibold text-amber-700">
               <span className="relative flex h-2 w-2"><span className={`absolute inline-flex h-full w-full rounded-full bg-amber-400 ${running ? 'animate-ping' : ''} opacity-70`} /><span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" /></span>
-              {running ? 'SIMULATED LIVE FEED' : 'SIMULATION PAUSED'}
+              {running ? ' ' : 'SIMULATION PAUSED'}
             </span>
             <span className="inline-flex items-center gap-1.5 text-slate-600"><Clock size={13} />Updated {ago}s ago · {new Date(live.at).toLocaleTimeString('en-IN')}</span>
             <span className="inline-flex items-center gap-1.5 text-slate-500"><Radio size={13} />{profile.location}</span>
@@ -713,14 +770,14 @@ function Monitoring() {
           </div>
           <div className={`${card} p-5`}>
             <h3 className="font-semibold text-slate-900">Event log</h3>
-            <p className="mt-0.5 text-xs text-slate-600">Derived from the last 72 hours (simulated)</p>
+            <p className="mt-0.5 text-xs text-slate-600">Today's events · {formatTodayIndia(clock)} · IST · simulated sample data</p>
             <ul className="mt-3 max-h-56 space-y-2 overflow-y-auto pr-1">
-              {events.length === 0 && <li className="text-xs text-slate-500">No events in this period.</li>}
+              {events.length === 0 && <li className="text-xs text-slate-500">No events recorded today.</li>}
               {events.map((e, i) => (
                 <li key={i} className="flex items-start gap-3 text-xs">
                   <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ background: evTone[e.kind] }} />
                   <span className="flex-1 text-slate-700">{e.text}</span>
-                  <span className="shrink-0 text-slate-500">{new Date(e.t).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                  <span className="shrink-0 text-slate-500">{formatEventTime(e.t)}</span>
                 </li>
               ))}
             </ul>
