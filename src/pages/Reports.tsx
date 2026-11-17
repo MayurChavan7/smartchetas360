@@ -232,10 +232,10 @@ function formatDate(date: Date) {
   });
 }
 
-function dateInputValue(date: Date) {
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 10);
-}
+// function dateInputValue(date: Date) {
+//   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+//   return local.toISOString().slice(0, 10);
+// }
 
 function exportExcel(rows: TelemetryRow[]) {
   const data = rows.map((row) => ({

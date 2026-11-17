@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import {
   Activity,
-  CalendarDays,
   ChartLine,
   Gauge,
   Info,
@@ -197,7 +196,7 @@ export default function SafetyParametersPage() {
         return next;
       });
 
-      setPreviousValues((current) => ({ ...liveValues }));
+      setPreviousValues(() => ({ ...liveValues }));
       setLastUpdated(new Date());
 
       setHistory((current) => {
