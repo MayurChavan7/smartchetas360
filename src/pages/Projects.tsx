@@ -103,7 +103,7 @@ const projectLocations: ProjectLocation[] = [
     projects: [
       "NTPC Telangana",
       "NTPC Ramagundam",
-      "NHP LMD Dam",
+      "  LMD Dam",
       "Kaddam Dam",
       "SRSP Dam",
     ],
@@ -113,7 +113,7 @@ const projectLocations: ProjectLocation[] = [
     name: "Madhya Pradesh",
     geo: "Madhya Pradesh",
     projects: [
-      "NHP Bargi Dam",
+      "  Bargi Dam",
       "Bansagar Dam",
       "Gandhisagar Dam",
       "Sanja Sarovar Dam",
