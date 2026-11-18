@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import ReactECharts from 'echarts-for-react'
 import type { LucideIcon } from 'lucide-react'
 import {
-  Activity, AlertTriangle, BrainCircuit, CalendarDays, CheckCircle2, ChevronDown, Clock, CloudRain, Droplets, Gauge, Info,
+  Activity, AlertTriangle, BrainCircuit, CalendarDays, CheckCircle2, ChevronDown, Clock, CloudRain, Droplets, Gauge,
   Layers3, MapPin, RadioTower, ShieldAlert, Target, TrendingUp, Waves, Wind, Zap,
 } from 'lucide-react'
 

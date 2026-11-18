@@ -8,7 +8,6 @@ import {
   X,
   Activity,
   RefreshCw,
-  BellRing,
   MapPin,
 } from "lucide-react";
 

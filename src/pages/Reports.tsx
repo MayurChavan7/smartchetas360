@@ -10,7 +10,6 @@ import {
   FileSpreadsheet,
   FileText,
   Gauge,
-  RefreshCw,
   Search,
   Waves,
   Droplets,
@@ -83,7 +82,7 @@ export default function Reports() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [search, setSearch] = useState("");
-  const [lastRefresh, setLastRefresh] = useState(new Date());
+const [lastRefresh] = useState(new Date());
   const filteredRecords = useMemo(() => {
     const from = fromDate ? new Date(`${fromDate}T00:00:00`) : null;
     const to = toDate ? new Date(`${toDate}T23:59:59.999`) : null;

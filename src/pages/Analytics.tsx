@@ -9,11 +9,9 @@ import {
   CloudRain,
   Droplets,
   Gauge,
-  Info,
   TrendingUp,
   TrendingDown,
   Waves,
-  Database,
   CalendarDays,
 } from "lucide-react";
 
