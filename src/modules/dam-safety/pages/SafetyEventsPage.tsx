@@ -34,8 +34,8 @@ const minutesAgo = (minutes: number) => Date.now() - minutes * 60 * 1000;
 const initialEvents: SafetyEvent[] = [
   {
     id: "EVT-2026-001",
-    title: "Piezometric level crossed watch band",
-    parameter: "Piezometric Level",
+    title: " Leakage Sensor crossed watch band",
+    parameter: " Leakage Sensor",
     location: "Upstream Gallery",
     severity: "Warning",
     status: "Open",
@@ -207,7 +207,7 @@ export default function SafetyEventsPage() {
         description="Review, track and manage dam safety observations, alerts and event actions."
       />
 
-      {/* Demonstration data notice */}
+      {/* Demonstration data notice
       <div className="flex flex-col gap-3 rounded-xl border border-sky-200 bg-sky-50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="rounded-lg bg-white p-2 text-sky-700">
@@ -225,7 +225,7 @@ export default function SafetyEventsPage() {
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
           Feed view active
         </span>
-      </div>
+      </div> */}
 
       {/* Project selector and feed time */}
       <div className="flex flex-wrap items-center justify-between gap-4">

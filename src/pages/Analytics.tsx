@@ -362,7 +362,7 @@ function MetricCard({
         </div>
 
         <span className="rounded-full border border-slate-300 bg-white/70 px-3 py-1 text-[10px] font-medium text-[#007EBA]">
-          DEMO
+              
         </span>
       </div>
 
@@ -609,7 +609,7 @@ export default function Analytics() {
         subtitle="Analyze reservoir performance, water discharge, rainfall and historical dam data."
       />
 
-      {/* DEMO DATA NOTICE */}
+      {/*      DATA NOTICE
 
       <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-[#0098DB]/30 bg-[#0098DB]/5 p-4">
         <div className="flex items-start gap-3">
@@ -632,9 +632,9 @@ export default function Analytics() {
         </div>
 
         <span className="rounded-full border border-[#0098DB]/30 bg-[#0098DB]/10 px-3 py-1 text-xs font-semibold text-[#07577C]">
-          DEMO DATA
+               DATA
         </span>
-      </div>
+      </div> */}
 
       {/* PROJECT AND DATE FILTERS */}
 
@@ -819,7 +819,7 @@ export default function Analytics() {
               </div>
 
               <span className="text-xs text-[#007EBA]">
-                DEMO
+                    
               </span>
             </div>
 
@@ -858,7 +858,7 @@ export default function Analytics() {
               </div>
 
               <span className="text-xs text-[#007EBA]">
-                DEMO
+                    
               </span>
             </div>
 
@@ -906,7 +906,7 @@ export default function Analytics() {
               </div>
 
               <span className="text-xs text-[#007EBA]">
-                DEMO
+                    
               </span>
             </div>
 
@@ -933,7 +933,7 @@ export default function Analytics() {
         </div>
       </section>
 
-      {/* ANALYTICS INFORMATION */}
+      {/* ANALYTICS INFORMATION
 
       <div className="rounded-xl border border-[#0098DB]/20 bg-[#0098DB]/5 p-5">
         <div className="flex items-center gap-3">
@@ -956,17 +956,17 @@ export default function Analytics() {
           operational decisions, water-release planning or dam safety
           assessment.
         </p>
-      </div>
+      </div> */}
 
       {/* FOOTER */}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5 text-xs text-slate-500">
         <p>
-          SMART DAM 360 · Analytics & Insights
+          SMART DAM       · Analytics & Insights
         </p>
 
         <p>
-          Chetas Control Systems · Local mock dataset
+          Chetas Control Systems ·      
         </p>
       </div>
     </div>

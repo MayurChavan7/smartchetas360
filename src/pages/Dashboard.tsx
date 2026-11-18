@@ -73,7 +73,7 @@ const featuredProjects = [
     tone: "blue",
     metrics: [
       { label: "Model", value: "3D Digital Twin" },
-      { label: "Data mode", value: "Simulated" },
+      // { label: "Data mode", value: "Simulated" },
     ],
   },
   {
@@ -86,7 +86,7 @@ const featuredProjects = [
     tone: "cyan",
     metrics: [
       { label: "Model", value: "3D Digital Twin" },
-      { label: "Data mode", value: "Simulated" },
+      // { label: "Data mode", value: "Simulated" },
     ],
   },
 ];
@@ -133,7 +133,7 @@ function Dashboard() {
 
         <div className="relative flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
           <div className="min-w-0">
-            <div className="mb-3 inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
+            {/* <div className="mb-3 inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-0.5">
                 <img
                   src="/ChetasLogo.webp"
@@ -144,7 +144,7 @@ function Dashboard() {
               <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#BDEBFC]">
                 Chetas Control Systems
               </span>
-            </div>
+            </div> */}
 
             <h1 className="!text-white text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
               Command Center
@@ -156,14 +156,21 @@ function Dashboard() {
             </p>
           </div>
 
-          <div className="flex w-fit shrink-0 items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0098DB]">
-              <Activity size={21} className="text-white" />
+          {/* COMPANY BRAND */}
+          <div className="flex shrink-0 items-center gap-3 rounded-xl border border-white/15 bg-white px-4 py-3 shadow-sm sm:px-5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+              <img
+                src="/ChetasLogo.webp"
+                alt="Chetas Control Systems logo"
+                className="h-full w-full object-contain"
+              />
             </div>
-            <div>
-              <p className="!text-white text-sm font-semibold">Platform overview</p>
-              <p className="!text-slate-200 mt-0.5 text-xs">
-                Project portfolio and monitoring
+            <div className="min-w-0">
+              <p className="text-sm font-bold leading-5 text-[#102B3D] sm:text-base">
+                Chetas Control Systems
+              </p>
+              <p className="mt-0.5 text-xs font-medium leading-4 text-[#007DB5]">
+                  SMART DAM   INTERFACE
               </p>
             </div>
           </div>
@@ -181,9 +188,9 @@ function Dashboard() {
               Project portfolio and monitoring overview
             </p>
           </div>
-          <span className="w-fit rounded-full border border-[#BDE7F8] bg-[#EAF7FD] px-3 py-1 text-xs font-semibold text-[#007DB5]">
+          {/* <span className="w-fit rounded-full border border-[#BDE7F8] bg-[#EAF7FD] px-3 py-1 text-xs font-semibold text-[#007DB5]">
             Simulated data
-          </span>
+          </span> */}
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -304,7 +311,7 @@ function Dashboard() {
             </div>
 
             <p className="text-[11px] leading-5 text-slate-400">
-              Portfolio counts are directory information, not live telemetry.
+              Portfolio counts are directory information.
             </p>
           </div>
         </div>
@@ -385,7 +392,7 @@ function Dashboard() {
             Platform capabilities
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Core modules available in the SMART DAM 360 interface
+            Core modules available in the SMART DAM   interface
           </p>
         </div>
 
@@ -434,7 +441,7 @@ function Dashboard() {
         </div>
       </section>
 
-      {/* SIMULATED DATA NOTE */}
+      {/* SIMULATED DATA NOTE
       <section className="flex flex-col gap-3 rounded-xl border border-[#BDE7F8] bg-[#F0F9FF] p-4 sm:flex-row sm:items-center">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-[#0098DB] shadow-sm">
           <Radio size={20} />
@@ -450,11 +457,11 @@ function Dashboard() {
         <span className="w-fit shrink-0 rounded-full border border-[#BDE7F8] bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-[#007DB5]">
           Simulation
         </span>
-      </section>
+      </section> */}
 
       {/* FOOTER */}
       <footer className="flex flex-col gap-2 border-t border-slate-200 pt-5 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-        <p>SMART DAM 360 · Chetas Control Systems Pvt. Ltd.</p>
+        <p>SMART DAM   · Chetas Control Systems Pvt. Ltd.</p>
         <p>Dam intelligence and Digital Twin platform</p>
       </footer>
     </div>

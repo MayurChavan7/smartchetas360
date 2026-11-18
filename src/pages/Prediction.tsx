@@ -1,10 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// SMART DAM 360 - Predictive Analysis (single file, white theme).
-// ALL DATA IS SIMULATED. Section 1 is a small real forecasting model (ridge-regularised autoregressive model with
-// weather inputs) that is trained in the browser on simulated history, so every number on the page (skill scores,
-// uncertainty bands, exceedance probabilities, risk index, release suggestions) is computed, not hard-coded.
-// To go live: replace genData() with your API history, keep train() / runEnsemble() / backtest().
-// Needs: react, echarts, echarts-for-react, lucide-react.
+
 
 import { useEffect, useId, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
@@ -16,7 +10,7 @@ import {
 } from 'lucide-react'
 
 // ============================================================================
-// 1. SIMULATED DATA + MACHINE-LEARNING CORE
+// 1.                 + MACHINE-LEARNING CORE
 // ============================================================================
 type DamKey = 'Tawa Dam' | 'Bansagar Dam'
 interface Dam { key: DamKey; base: number; frl: number; ref: number; area: number; qBase: number; qRel: number; gain: number; seed: number }
@@ -24,7 +18,7 @@ const DAMS: Record<DamKey, Dam> = {
   'Tawa Dam': { key: 'Tawa Dam', base: 354.19, frl: 358.75, ref: 356.2, area: 1.8e7, qBase: 325, qRel: 325, gain: 230, seed: 7 },
   'Bansagar Dam': { key: 'Bansagar Dam', base: 340.82, frl: 341.64, ref: 341.5, area: 4.5e7, qBase: 436, qRel: 436, gain: 300, seed: 19 },
 }
-const N_HIST = 120 * 24, H_TRAIN = 90 * 24, FUT = 168, HOUR = 3600e3
+const N_HIST = 120 * 24, H_TRAIN = 90 * 24, FUT = 168, HOUR =            0e3
 const LEADS = [6, 12, 24, 48, 72, 120, 168]
 const SCEN = { normal: 1, heavy: 1.6, extreme: 2.4 } as const
 type ScenKey = keyof typeof SCEN
@@ -57,7 +51,7 @@ function genData(d: Dam, issue: number): Data {
   const level = [d.base - 0.2]
   for (let t = 0; t < N_HIST - 1; t++) {
     const rel = d.qRel * (1 + 2 * clamp((level[t] - (d.base - 0.3)) / 2, 0, 1))
-    level.push(clamp(level[t] + ((q[t] - rel) * 3600) / d.area, d.base - 4, d.frl + 0.3))
+    level.push(clamp(level[t] + ((q[t] - rel) *            0) / d.area, d.base - 4, d.frl + 0.3))
   }
   const fix = d.base - level[N_HIST - 1]
   for (let t = 0; t < N_HIST; t++) level[t] += fix * (t / (N_HIST - 1))
@@ -146,7 +140,7 @@ function runEnsemble(d: Dam, data: Data, m: Model, mult: number, rel: number, me
     const rf = nwpMember(truth, r, mult), nz = rng(5000 + k * 17)
     const q = rollout(m, d.qBase * 0.3, data.q.slice(0, t0 + 1), data.rain.slice(0, t0 + 1), data.api[t0], rf, hr0, () => gauss(nz))
     const lv: number[] = []; let L = d.base
-    q.forEach((x) => { L = clamp(L + ((x - rel) * 3600) / d.area, d.base - 4, d.frl + 1); lv.push(L) })
+    q.forEach((x) => { L = clamp(L + ((x - rel) *            0) / d.area, d.base - 4, d.frl + 1); lv.push(L) })
     out.q.push(q); out.lvl.push(lv); out.rain.push(rf)
   }
   return out
@@ -192,9 +186,9 @@ const BRAND = '#0098DB', LIGHT = '#91D8F4', INK = '#0f172a', MUTE = '#64748b', G
 const card = 'rounded-2xl border border-slate-200 bg-white shadow-sm'
 const HORIZONS: { label: string; h: number }[] = [{ label: '6 Hours', h: 6 }, { label: '24 Hours', h: 24 }, { label: '72 Hours', h: 72 }, { label: '7 Days', h: 168 }]
 const SCEN_META: Record<ScenKey, { title: string; caption: string; icon: LucideIcon; color: string }> = {
-  normal: { title: 'Forecast rainfall', caption: 'Weather-model rainfall as issued', icon: CloudRain, color: BRAND },
-  heavy: { title: 'Heavy rainfall', caption: '1.6× the forecast rainfall', icon: Waves, color: '#f59e0b' },
-  extreme: { title: 'Extreme rainfall', caption: '2.4× the forecast rainfall', icon: AlertTriangle, color: '#ef4444' },
+  normal: { title: 'Baseline scenario', caption: 'Generated rainfall series', icon: CloudRain, color: BRAND },
+  heavy: { title: 'Heavy rainfall', caption: '1.6× generated rainfall', icon: Waves, color: '#f59e0b' },
+  extreme: { title: 'Extreme rainfall', caption: '2.4× generated rainfall', icon: AlertTriangle, color: '#ef4444' },
 }
 const RISK = (v: number) => (v < 25 ? { label: 'Low', c: '#10b981', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' } : v < 50 ? { label: 'Moderate', c: '#f59e0b', bg: 'bg-amber-50 text-amber-700 border-amber-200' } : v < 75 ? { label: 'High', c: '#f97316', bg: 'bg-orange-50 text-orange-700 border-orange-200' } : { label: 'Severe', c: '#ef4444', bg: 'bg-red-50 text-red-700 border-red-200' })
 
@@ -410,7 +404,7 @@ export default function Prediction() {
   const wxMax90 = quantile(wx.map((r) => Math.max(...r)), 0.9)
 
   const rows: [string, number, string][] = [
-    ['Forecast rainfall (72 h)', pctRank(rain72, fc72), `Percentile of ${f(fc72, 0)} mm against the last 120 days`],
+    ['Scenario rainfall (72 h)', pctRank(rain72, fc72), `Percentile of ${f(fc72, 0)} mm against the last 120 days`],
     ['Soil wetness', apiPct, `Antecedent index ${f(apiNow, 0)} · percentile`],
     ['Inflow rise', clamp((quantile(cur.pkQ, 0.5) / (dam.qBase * 2.5)) * 100, 0, 100), `Median peak ${f(quantile(cur.pkQ, 0.5))} m³/s`],
     ['Reservoir cushion used', clamp(((quantile(cur.pkL, 0.5) - dam.base) / (dam.ref - dam.base)) * 100, 0, 100), `${f(dam.ref - dam.base, 2)} m below the illustrative reference`],
@@ -436,19 +430,19 @@ export default function Prediction() {
   const horizonLabel = HORIZONS.find((x) => x.h === h)!.label
 
   return (
-    <div className="min-h-screen min-w-0 space-y-6 bg-white p-3 text-slate-800 sm:p-5 lg:p-6">
+    <div className="min-h-screen min-w-0 space-y-4 bg-white p-2 text-slate-800 sm:space-y-5 sm:p-4 lg:p-5">
       {/* Heading */}
       <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
         <div className="flex min-w-0 items-start gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-sky-200 bg-sky-50 text-[#0098DB]"><BrainCircuit size={25} /></div>
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0098DB]">SMART DAM 360 · AI / ML</span>
-              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700">DEMO DATA</span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[9px] font-semibold text-slate-600">Model ARX-Ridge v1.0 · trained in browser</span>
+              {/* <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0098DB]">SMART DAM  </span> */}
+              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700">               </span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[9px] font-semibold text-slate-600">Illustrative model · runs in browser</span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Predictive Analysis</h1>
-            <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500 sm:text-sm">Probabilistic rainfall, inflow and reservoir forecasts with uncertainty, exceedance probability and release planning.</p>
+            <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500 sm:text-sm">Scenario-based rainfall, inflow and reservoir estimates. This page uses generated sample data, not connected dam telemetry.</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -458,15 +452,15 @@ export default function Prediction() {
         </div>
       </div>
 
-      {/* Live observation strip */}
+      {/* Sample-data summary strip */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {obs.map((o) => (
           <div key={o.l} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
-            <div className="flex items-center justify-between"><span className="text-[11px] text-slate-500">{o.l}</span><span className="flex items-center gap-1 text-[9px] font-semibold text-emerald-600"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />LIVE</span></div>
+            <div className="flex items-center justify-between"><span className="text-[11px] text-slate-500">{o.l}</span><span className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700">SAMPLE</span></div>
             <p className="mt-1 text-lg font-bold tabular-nums text-slate-900">{o.v} <span className="text-[11px] font-medium text-slate-400">{o.u}</span></p><Spark data={o.s} color={o.c} />
           </div>
         ))}
-        <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-3"><span className="text-[11px] text-slate-500">Next forecast cycle</span><p className="mt-1 flex items-center gap-1.5 text-lg font-bold tabular-nums text-slate-900"><Clock size={16} className="text-[#0098DB]" />{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}</p><p className="mt-1 text-[10px] text-slate-500">Hourly re-issue · 100 members</p></div>
+        <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-3"><span className="text-[11px] text-slate-500">Next forecast cycle</span><p className="mt-1 flex items-center gap-1.5 text-lg font-bold tabular-nums text-slate-900"><Clock size={16} className="text-[#0098DB]" />{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}</p><p className="mt-1 text-[10px] text-slate-500">Hourly simulation cycle · 100 ensemble members</p></div>
       </div>
 
       {/* Controls */}
@@ -573,13 +567,13 @@ export default function Prediction() {
       <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
         <div className={`${card} p-4`}><div className="mb-3 flex items-center gap-2"><Zap size={18} className="text-amber-500" /><h3 className="text-sm font-bold text-slate-900">Planning guidance for this scenario</h3></div>
           <ul className="space-y-3">{recs.map((r, i) => <li key={i} className="flex items-start gap-2.5 text-xs leading-5 text-slate-700"><span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-50 text-[10px] font-bold text-[#0098DB]">{i + 1}</span>{r}</li>)}</ul>
-          <p className="mt-4 border-t border-slate-100 pt-3 text-[10px] leading-4 text-slate-400">Planning prompts only. They are generated from simulated data and are not operating instructions.</p></div>
+          <p className="mt-4 border-t border-slate-100 pt-3 text-[10px] leading-4 text-slate-400">Planning prompts only. They are generated from                 and are not operating instructions.</p></div>
         <div className="grid grid-cols-2 gap-3">
           {[
             { t: 'Weather intelligence', icon: Wind, tone: 'bg-sky-50 text-sky-600', v: `${f(Math.max(...wxMed), 1)} mm/h`, d: `Peak hourly rain (median) around ${tfmt(T(wxPeakK), { hour: '2-digit', minute: '2-digit', hour12: false })} IST · P90 peak ${f(wxMax90, 1)} mm/h` },
             { t: 'Drought outlook', icon: Droplets, tone: dry < 25 ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600', v: dry < 25 ? 'Drier than usual' : dry > 75 ? 'Wetter than usual' : 'Near normal', d: `Last 30-day rainfall at the ${f(dry, 0)}th percentile of the record` },
             { t: 'Soil wetness', icon: Layers3, tone: 'bg-violet-50 text-violet-600', v: apiPct > 66 ? 'Wet' : apiPct < 33 ? 'Dry' : 'Moderate', d: `Antecedent index ${f(apiNow, 0)} · ${f(apiPct, 0)}th percentile; wet soil raises runoff` },
-            { t: 'Input data health', icon: RadioTower, tone: 'bg-emerald-50 text-emerald-600', v: 'All feeds OK', d: 'Rain gauges, river gauge, reservoir sensor and weather model reporting (simulated)' },
+            { t: 'Input data health', icon: RadioTower, tone: 'bg-emerald-50 text-emerald-600', v: 'Sample inputs only', d: 'No rain gauge, river gauge, reservoir sensor or weather-service connection on this page' },
           ].map((x) => { const I = x.icon; return <div key={x.t} className={`${card} p-4`}><div className={`flex h-9 w-9 items-center justify-center rounded-xl ${x.tone}`}><I size={17} /></div><h3 className="mt-3 text-xs font-bold text-slate-900">{x.t}</h3><p className="mt-1 text-sm font-bold text-slate-900">{x.v}</p><p className="mt-1 text-[10px] leading-4 text-slate-500">{x.d}</p></div> })}
         </div>
       </section>
@@ -600,13 +594,12 @@ export default function Prediction() {
         </div>
       </section>
 
-      {/* Disclaimer */}
-      <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
-        <Info size={17} className="mt-0.5 shrink-0 text-amber-600" />
-        <div><p className="text-xs font-bold text-amber-800">Demonstration and model-readiness notice</p>
-          <p className="mt-1 text-[11px] leading-5 text-amber-900/80">All data on this page is simulated: rainfall, inflow, reservoir level, weather-model forecasts and the history used to train and validate the model. The model is a small regression forecaster fitted in your browser to that simulated history, so its accuracy figures describe the simulation only, not real conditions. Nothing here is connected to dam telemetry, SCADA or a weather service, and it is not a forecast for the selected dam. Reference levels, risk indices and release suggestions are illustrative, are not approved operating limits, and must not be used for dam-safety decisions or equipment operation. A production system needs verified historical and live data, dam-specific calibration, independent validation, uncertainty review, approved thresholds and expert sign-off.</p></div>
-      </div>
-      <div className="flex flex-col justify-between gap-2 border-t border-slate-200 pt-4 text-[10px] text-slate-400 sm:flex-row sm:items-center"><span>SMART DAM 360 · Predictive Analysis · Chetas Control Systems</span><span>Simulated data · model trained in browser</span></div>
+      {/* <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <Info size={17} className="mt-0.5 shrink-0 text-amber-700" />
+        <div><p className="text-xs font-bold text-amber-900">Sample-data notice</p>
+          <p className="mt-1 text-[11px] leading-5 text-amber-900/80">Rainfall, inflow, reservoir level, weather forecasts and the model training history shown here are generated for demonstration. This page is not connected to SCADA, telemetry or a weather service and does not represent current Tawa or Bansagar conditions. Risk levels, reference values and release planning are illustrative only and must not be be used for dam operation or safety decisions. Use verified readings, approved limits and the duty engineer’s assessment for operational decisions.</p></div>
+      </div> */}
+      <div className="flex flex-col justify-between gap-2 border-t border-slate-200 pt-4 text-[10px] text-slate-400 sm:flex-row sm:items-center"><span>SMART DAM · Predictive Analysis · Chetas Control Systems</span><span>Sample dataset · Not live telemetry</span></div>
     </div>
   )
 }

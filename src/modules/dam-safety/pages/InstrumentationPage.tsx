@@ -198,7 +198,7 @@ export default function InstrumentationPage() {
         description="Monitor instrument readings, communication health and measurement updates."
       />
 
-      {/* Demo telemetry notice */}
+      {/* Demo telemetry notice
       <div className="flex flex-col gap-3 rounded-xl border border-sky-200 bg-sky-50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="rounded-lg bg-white p-2 text-sky-600">
@@ -220,7 +220,7 @@ export default function InstrumentationPage() {
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
           Auto refresh enabled
         </div>
-      </div>
+      </div> */}
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

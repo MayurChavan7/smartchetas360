@@ -449,15 +449,15 @@ function Panel({
   className?: string;
 }) {
   return (
-    <div className={`rounded-xl border border-[#17305a] bg-[#0a1630] ${className}`}>
-      <div className="flex items-center justify-between gap-2 border-b border-[#17305a] px-3.5 py-2.5">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+    <div className={`min-w-0 rounded-xl border border-[#17305a] bg-[#0a1630] ${className}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#17305a] px-3 py-2.5 sm:px-4 sm:py-3">
+        <h3 className="flex min-w-0 items-center gap-2 text-sm font-semibold !text-white">
           {icon}
           {title}
         </h3>
         {right}
       </div>
-      <div className="p-3.5">{children}</div>
+      <div className="p-3 sm:p-4">{children}</div>
     </div>
   );
 }
@@ -596,7 +596,7 @@ function TimeChart({
   return (
     <div className="rounded-lg border border-[#17305a] bg-[#071126] p-3">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <h4 className="text-sm font-semibold text-slate-100">
+        <h4 className="text-sm font-semibold !text-white">
           {title} <span className="font-normal text-slate-400">({unit})</span>
         </h4>
         <div className="flex flex-wrap gap-x-3 text-xs">
@@ -1819,22 +1819,22 @@ export default function EarlyWarningSimulation() {
       className={
         isCommandCenterFullscreen
           ? "fixed inset-0 z-[110] flex h-[100dvh] w-screen flex-col overflow-y-auto overscroll-contain rounded-none border-0 bg-[#050b18] text-slate-100 shadow-none"
-          : "overflow-hidden rounded-xl border border-[#17305a] bg-[#050b18] text-slate-100 shadow-lg"
+          : "overflow-hidden rounded-xl border border-[#17305a] bg-[#050b18] text-white shadow-lg"
       }
       aria-label="Multi-hazard early warning command center"
     >
       {/* header */}
-      <div className="flex flex-col justify-between gap-3 border-b border-[#17305a] bg-[#08122a] px-4 py-3 sm:flex-row sm:items-center sm:px-5">
-        <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-col justify-between gap-3 border-b border-[#17305a] bg-[#08122a] px-3 py-3 sm:px-4 sm:py-3 lg:px-5 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/15 text-sky-300">
             <ShieldAlert size={21} />
           </div>
           <div>
-            <h2 className="font-bold text-white">Multi-hazard early warning command center</h2>
-            <p className="mt-0.5 text-xs text-slate-400">Rainfall flood and earthquake response with automated gate and notification logic</p>
+            <h2 className="text-base font-bold leading-snug tracking-tight !text-white sm:text-lg">Multi-hazard early warning command center</h2>
+            <p className="mt-1 text-xs leading-relaxed text-slate-300">Rainfall flood and earthquake response with automated gate and notification logic</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <span className="rounded-md border border-[#17305a] bg-[#071126] px-3 py-1.5 font-mono text-sm tabular-nums text-slate-100">{clock(time)}</span>
           <span
             className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-bold"
@@ -1865,9 +1865,9 @@ export default function EarlyWarningSimulation() {
         </div>
       )}
 
-      <div className="grid min-w-0 grid-cols-1 gap-4 p-3 sm:p-4 2xl:grid-cols-[290px_minmax(0,1fr)_320px]">
+      <div className="grid min-w-0 grid-cols-1 items-start gap-3 p-2.5 sm:gap-4 sm:p-4 xl:grid-cols-[minmax(230px,260px)_minmax(0,1fr)_minmax(260px,300px)]">
         {/* ---------------- left: scenario ---------------- */}
-        <aside className="order-2 min-w-0 space-y-4 2xl:order-1">
+        <aside className="order-2 min-w-0 space-y-3 xl:order-1">
           <Panel title="Scenario presets" icon={<Settings2 size={16} className="text-sky-300" />}>
             <div className="grid gap-2">
               {PRESETS.map((preset) => (
@@ -1877,7 +1877,7 @@ export default function EarlyWarningSimulation() {
                   onClick={() => applyPreset(preset.p)}
                   className="rounded-lg border border-[#17305a] bg-[#071126] px-3 py-2 text-left transition hover:border-sky-500/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400"
                 >
-                  <span className="block text-sm font-semibold text-slate-100">{preset.label}</span>
+                  <span className="block text-sm font-semibold !text-white">{preset.label}</span>
                   <span className="block text-xs text-slate-400">{preset.desc}</span>
                 </button>
               ))}
@@ -1957,8 +1957,8 @@ export default function EarlyWarningSimulation() {
         </aside>
 
         {/* ---------------- centre: stage + analytics ---------------- */}
-        <div className="order-1 min-w-0 space-y-4 2xl:order-2">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-6">
+        <div className="order-1 min-w-0 space-y-3 xl:order-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
             {kpis.map((k) => (
               <div key={k.label} className="rounded-lg border border-[#17305a] bg-[#0a1630] px-3 py-2.5">
                 <p className="text-xs text-slate-400">{k.label}</p>
@@ -2094,7 +2094,7 @@ export default function EarlyWarningSimulation() {
                 )}
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <button type="button" onClick={togglePlayback} className="inline-flex items-center gap-2 rounded-lg bg-[#007EBA] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0092d6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-300">
+                <button type="button" onClick={togglePlayback} className="inline-flex items-center gap-2 rounded-lg bg-[#007EBA] px-4 py-2 text-sm font-semibold !text-white hover:bg-[#0092d6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-300">
                   {playing ? <Pause size={15} /> : <Play size={15} />}
                   {playing ? "Pause" : time >= DURATION ? "Replay" : "Play"}
                 </button>
@@ -2271,7 +2271,7 @@ export default function EarlyWarningSimulation() {
         </div>
 
         {/* ---------------- right: response ---------------- */}
-        <aside className="order-3 min-w-0 space-y-4 2xl:order-3">
+        <aside className="order-3 min-w-0 space-y-3 xl:order-3">
           <Panel title="Alert level" icon={<Bell size={16} className="text-sky-300" />}>
             <ol className="space-y-1.5">
               {ALERTS.map((a, i) => {
@@ -2344,40 +2344,44 @@ export default function EarlyWarningSimulation() {
             </ul>
           </Panel>
 
-          <Panel title="Event log" icon={<Activity size={16} className="text-sky-300" />} right={<span className="text-xs text-slate-400">{visibleEvents.length} events</span>}>
-            <ol className="max-h-80 space-y-2 overflow-auto pr-1">
-              {visibleEvents.length === 0 && <li className="text-xs text-slate-400">No events yet.</li>}
-              {visibleEvents.map((e, i) => (
-                <li key={`${e.t}-${i}`} className="border-l-2 pl-2.5 text-xs leading-5" style={{ borderColor: LOG_COLOR[e.kind] }}>
-                  <span className="mr-1.5 font-mono tabular-nums" style={{ color: LOG_COLOR[e.kind] }}>
-                    {clock(e.t)}
-                  </span>
-                  <span className="text-slate-200">{e.text}</span>
-                </li>
-              ))}
-            </ol>
-          </Panel>
-
-          <Panel title="Scenario summary" icon={<Waves size={16} className="text-sky-300" />}>
-            <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-              <dt className="text-slate-400">Peak level</dt>
-              <dd className="text-right font-mono text-slate-100">{sim.summary.peakLevel.toFixed(2)} m</dd>
-              <dt className="text-slate-400">Peak outflow</dt>
-              <dd className="text-right font-mono text-slate-100">{sim.summary.peakOutflow.toFixed(0)} m³/s</dd>
-              <dt className="text-slate-400">Highest alert</dt>
-              <dd className="text-right font-semibold" style={{ color: ALERTS[sim.summary.maxAlert].color }}>{ALERTS[sim.summary.maxAlert].name}</dd>
-              <dt className="text-slate-400">First warning</dt>
-              <dd className="text-right font-mono text-slate-100">{sim.summary.firstWarning === null ? "None" : clock(sim.summary.firstWarning)}</dd>
-              <dt className="text-slate-400">Max flood depth</dt>
-              <dd className="text-right font-mono text-slate-100">{sim.summary.maxDepth.toFixed(1)} m</dd>
-              <dt className="text-slate-400">Max people at risk</dt>
-              <dd className="text-right font-mono text-slate-100">{sim.summary.maxPopRisk.toLocaleString("en-IN")}</dd>
-              <dt className="text-slate-400">Evacuated by end</dt>
-              <dd className="text-right font-mono text-slate-100">{sim.summary.evacuatedPct}%</dd>
-            </dl>
-          </Panel>
         </aside>
       </div>
+
+      <div className="grid grid-cols-1 gap-3 px-2.5 pb-3 sm:gap-4 sm:px-4 lg:grid-cols-2 lg:items-start">
+        <Panel title="Event log" icon={<Activity size={16} className="text-sky-300" />} right={<span className="text-xs text-slate-400">{visibleEvents.length} events</span>}>
+          <ol className="max-h-80 space-y-2 overflow-auto pr-1">
+            {visibleEvents.length === 0 && <li className="text-xs text-slate-400">No events yet.</li>}
+            {visibleEvents.map((e, i) => (
+              <li key={`${e.t}-${i}`} className="border-l-2 pl-2.5 text-xs leading-5" style={{ borderColor: LOG_COLOR[e.kind] }}>
+                <span className="mr-1.5 font-mono tabular-nums" style={{ color: LOG_COLOR[e.kind] }}>
+                  {clock(e.t)}
+                </span>
+                <span className="text-slate-200">{e.text}</span>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+
+        <Panel title="Scenario summary" icon={<Waves size={16} className="text-sky-300" />}>
+          <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+            <dt className="text-slate-400">Peak level</dt>
+            <dd className="text-right font-mono text-slate-100">{sim.summary.peakLevel.toFixed(2)} m</dd>
+            <dt className="text-slate-400">Peak outflow</dt>
+            <dd className="text-right font-mono text-slate-100">{sim.summary.peakOutflow.toFixed(0)} m³/s</dd>
+            <dt className="text-slate-400">Highest alert</dt>
+            <dd className="text-right font-semibold" style={{ color: ALERTS[sim.summary.maxAlert].color }}>{ALERTS[sim.summary.maxAlert].name}</dd>
+            <dt className="text-slate-400">First warning</dt>
+            <dd className="text-right font-mono text-slate-100">{sim.summary.firstWarning === null ? "None" : clock(sim.summary.firstWarning)}</dd>
+            <dt className="text-slate-400">Max flood depth</dt>
+            <dd className="text-right font-mono text-slate-100">{sim.summary.maxDepth.toFixed(1)} m</dd>
+            <dt className="text-slate-400">Max people at risk</dt>
+            <dd className="text-right font-mono text-slate-100">{sim.summary.maxPopRisk.toLocaleString("en-IN")}</dd>
+            <dt className="text-slate-400">Evacuated by end</dt>
+            <dd className="text-right font-mono text-slate-100">{sim.summary.evacuatedPct}%</dd>
+          </dl>
+        </Panel>
+      </div>
+
 
       {/* <div className="border-t border-amber-400/20 bg-amber-500/5 px-4 py-3 sm:px-5">
         <p className="text-xs leading-5 text-amber-100/90">

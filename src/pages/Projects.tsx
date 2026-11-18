@@ -492,7 +492,7 @@ function Projects() {
               </span>
             </div>
             <p className="mt-1 text-sm text-slate-500">
-              Drag to rotate the 3D map, click a region, or let the tour run.
+                
             </p>
           </div>
 

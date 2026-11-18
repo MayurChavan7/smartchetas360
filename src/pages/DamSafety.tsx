@@ -535,14 +535,14 @@ export default function DamSafety() {
         </div>
       </div>
 
-      {/* Simulation notice */}
+      {/* Simulation notice
       <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
         <AlertTriangle className="mt-0.5 shrink-0 text-amber-700" size={20} />
         <div>
           <h3 className="text-sm font-semibold text-amber-700">Simulated instrumentation data</h3>
           <p className="mt-1 text-sm text-slate-600">Readings, drift, communication gaps and warning bands on this page are synthetic. Warning bands are illustrative and are not approved dam-specific safety criteria. Stale or offline instruments are shown as unavailable, never interpreted as a safety alarm.</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Control bar */}
       <div className="sticky top-0 z-30 -mx-1 rounded-2xl border border-[#DCE7EE] bg-white/95 px-4 py-3 backdrop-blur-xl">

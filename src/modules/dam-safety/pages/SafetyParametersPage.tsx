@@ -33,7 +33,7 @@ type ParameterConfig = {
 const parameters: ParameterConfig[] = [
   {
     id: "piezometric",
-    name: "Piezometric Level",
+    name: " Leakage Sensor",
     unit: "m",
     description: "Monitors pore water pressure within the dam foundation.",
     icon: Waves,
@@ -321,7 +321,7 @@ export default function SafetyParametersPage() {
         description="Analyze dam safety readings, historical trends and illustrative reference ranges."
       />
 
-      {/* Demo telemetry notice */}
+      {/* Demo telemetry notice
       <div className="flex flex-col gap-3 rounded-xl border border-sky-200 bg-sky-50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <Info className="mt-0.5 shrink-0 text-sky-700" size={20} />
@@ -340,7 +340,7 @@ export default function SafetyParametersPage() {
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
           Auto refresh enabled
         </div>
-      </div>
+      </div> */}
 
       {/* Project and date filters */}
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -492,7 +492,7 @@ export default function SafetyParametersPage() {
             <RefreshCw size={13} />
             Last updated: {lastUpdated.toLocaleTimeString("en-IN")}
           </span>
-          <span>Sample telemetry · 5-second refresh</span>
+          <span>  </span>
         </div>
       </div>
 
@@ -513,7 +513,7 @@ export default function SafetyParametersPage() {
             </div>
           </div>
           <span className="text-xs text-slate-500">
-            Illustrative historical series
+               
           </span>
         </div>
 
@@ -525,7 +525,7 @@ export default function SafetyParametersPage() {
         />
       </div>
 
-      {/* Engineering threshold information */}
+      {/* Engineering threshold information
       <div className="rounded-xl border border-[#DCE7EE] bg-white p-5 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EAF7FD]">
@@ -558,7 +558,7 @@ export default function SafetyParametersPage() {
             Approved engineering limits not yet connected
           </span>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

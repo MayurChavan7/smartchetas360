@@ -31,7 +31,7 @@ function Header() {
     pageTitles[location.pathname] ||
     (location.pathname.startsWith("/reports/")
       ? "Report Details"
-      : "SMART DAM 360");
+      : "SMART DAM");
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-[#24536D] bg-[#071B2A] text-white shadow-md">
@@ -48,7 +48,7 @@ function Header() {
           </p>
         </div>
 
-        {/* ADMINISTRATOR PROFILE */}
+        {/* ADMINISTRATOR PROFILE
         <div className="flex shrink-0 items-center gap-2.5 border-l border-[#24536D] pl-3 sm:gap-3 sm:pl-4 lg:pl-5">
 
           <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#0098DB]/60 bg-[#102B3D] transition-colors hover:bg-[#17384D]">
@@ -69,7 +69,7 @@ function Header() {
             </p>
           </div>
 
-        </div>
+        </div> */}
 
       </div>
     </header>

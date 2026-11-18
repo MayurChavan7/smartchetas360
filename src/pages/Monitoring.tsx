@@ -1,5 +1,5 @@
 // SMART DAM 360 - Live Monitoring page (single file).
-// Everything on this page is SIMULATED. Replace the data engine / hook in sections 1-2
+// Everything on this page is     . Replace the data engine / hook in sections 1-2
 // with real API data later; the UI sections (3-5) can stay as they are.
 // Needs: react, echarts, echarts-for-react, lucide-react, and your PageHeader component.
 
@@ -16,10 +16,10 @@ import {
 import PageHeader from '../components/common/PageHeader'
 
 // ==========================================================================
-// 1. SIMULATED DATA ENGINE
+// 1.      DATA ENGINE
 // ==========================================================================
 // ---------------------------------------------------------------------------
-// SIMULATED dam data engine. Everything here is synthetic and illustrative.
+//      dam data engine. Everything here is synthetic and illustrative.
 // It produces 60 days of 5-minute history (storms, diurnal inflow, gate
 // controller, canal release) plus a live tick that keeps the newest point moving.
 // Replace with real API data later; keep the History / Live shapes the same.
@@ -279,7 +279,7 @@ function buildEvents(p: DamProfile, h: History, now: number): LogEvent[] {
 // ==========================================================================
 // 2. LIVE FEED HOOK
 // ==========================================================================
-// Drives the simulated feed. Swap this hook for a real telemetry hook later.
+// Drives the      feed. Swap this hook for a real telemetry hook later.
 function useLiveDam(id: DamId, intervalMs: number, paused: boolean) {
   const profile = PROFILES[id]
   const hist = useMemo(() => generateHistory(profile, Date.now()), [profile])
@@ -770,7 +770,7 @@ function Monitoring() {
           </div>
           <div className={`${card} p-5`}>
             <h3 className="font-semibold text-slate-900">Event log</h3>
-            <p className="mt-0.5 text-xs text-slate-600">Today's events · {formatTodayIndia(clock)} · IST · simulated sample data</p>
+            <p className="mt-0.5 text-xs text-slate-600">Today's events · {formatTodayIndia(clock)} · IST ·      sample data</p>
             <ul className="mt-3 max-h-56 space-y-2 overflow-y-auto pr-1">
               {events.length === 0 && <li className="text-xs text-slate-500">No events recorded today.</li>}
               {events.map((e, i) => (
@@ -811,7 +811,7 @@ function Monitoring() {
         <div className={`${card} p-5 xl:col-span-3`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div><h3 className="font-semibold text-slate-900">Gate opening heat-map</h3><p className="mt-0.5 text-xs text-slate-600">{profile.gateCount} gates · opening % over the selected range</p></div>
-            <span className="rounded-full bg-sky-50 px-3 py-1 text-[11px] text-sky-700">Simulated</span>
+            <span className="rounded-full bg-sky-50 px-3 py-1 text-[11px] text-sky-700">    </span>
           </div>
           <ReactECharts option={heatOption} notMerge={true} lazyUpdate={false} style={{ height: Math.max(300, profile.gateCount * 20 + 90), width: '100%' }} />
         </div>
@@ -853,7 +853,7 @@ function Monitoring() {
       </section>
 
       <p className="rounded-xl border border-amber-200 bg-amber-500/5 p-3 text-xs leading-5 text-amber-800">
-        All readings, trends, gate behaviour, capacity, FRL and warning bands on this page are simulated placeholders. They are not connected to SCADA and must not be used for operational decisions or dam-safety assessment.
+           
       </p>
     </div>
   )
